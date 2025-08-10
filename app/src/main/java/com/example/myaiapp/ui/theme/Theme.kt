@@ -1,58 +1,93 @@
 package com.example.myaiapp.ui.theme
 
-import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+private val lightColorPalette = MyAIAppColors(
+    appBarColor = theme_light_blue_yonder,
+    tabSelectedColor = theme_light_white,
+    tabNotSelectedColor = theme_light_azureish_white,
+    floatingActionButtonColor = theme_light_blue_steel,
+    drawerTitleColor = theme_light_silver_lake_blue,
+    drawerColor = theme_light_white,
+    buttonColor = theme_light_blue_jeans,
+    outlinedEditTextColor = theme_light_blue_jeans,
+    messageBackgroundColor = theme_light_white,
+    ownMessageBackgroundColor = theme_light_nyanza,
+    primaryTextColor = theme_light_primary_text_color,
+    secondaryTextColor = theme_light_secondary_text_color,
+    hintColor = theme_light_hint_color,
+    iconTintColor = theme_light_roman_silver,
+    contentColor = theme_light_white,
+    backgroundColor = theme_light_background,
+    logoProgressBarColor = theme_light_logo_progress_bar,
+    chatBackgroundColor = theme_light_chat_background,
+    ownReactionBackgroundColor = theme_light_own_reaction_background,
+    userReactionBackgroundColor = theme_light_user_reaction_background,
+    dateBackgroundColor = theme_light_roman_silver,
+    shimmerColor = theme_light_shimmer,
+    userNameColor = theme_light_user_name,
+    ownMessageTimeColor = theme_light_own_message_time,
+    userMessageTimeColor = theme_light_user_message_time,
+    errorColor = theme_light_error,
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+private val darkColorPalette = MyAIAppColors(
+    appBarColor = theme_dark_gunmetal,
+    tabSelectedColor = theme_dark_french_sky_blue,
+    tabNotSelectedColor = theme_dark_cool_grey,
+    floatingActionButtonColor = theme_dark_carolina_blue,
+    drawerTitleColor = theme_dark_gunmetal_midnight,
+    drawerColor = theme_dark_dark_gunmetal,
+    buttonColor = theme_dark_blue_jeans,
+    outlinedEditTextColor = theme_dark_blue_jeans,
+    messageBackgroundColor = theme_dark_gunmetal,
+    ownMessageBackgroundColor = theme_dark_royal_purple,
+    primaryTextColor = theme_dark_primary_text_color,
+    secondaryTextColor = theme_dark_secondary_text_color,
+    hintColor = theme_dark_hint_color,
+    iconTintColor = theme_dark_roman_silver,
+    contentColor = theme_dark_white,
+    backgroundColor = theme_dark_background,
+    logoProgressBarColor = theme_dark_logo_progress_bar,
+    chatBackgroundColor = theme_dark_chat_background,
+    ownReactionBackgroundColor = theme_dark_own_reaction_background,
+    userReactionBackgroundColor = theme_dark_user_reaction_background,
+    dateBackgroundColor = theme_dark_roman_silver,
+    shimmerColor = theme_dark_shimmer,
+    userNameColor = theme_dark_user_name,
+    ownMessageTimeColor = theme_dark_own_message_time,
+    userMessageTimeColor = theme_dark_user_message_time,
+    errorColor = theme_dark_error,
 )
 
 @Composable
 fun MyAIAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+    val colors = if (darkTheme) {
+        darkColorPalette
+    } else {
+        lightColorPalette
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
+    val systemUiController = rememberSystemUiController()
+
+    SideEffect {
+        systemUiController.setStatusBarColor(
+            color = if (darkTheme) darkColorPalette.appBarColor else lightColorPalette.appBarColor,
+            darkIcons = !darkTheme
+        )
+    }
+
+    CompositionLocalProvider(
+        LocalMyAIAppColors provides colors,
+        LocalMyAIAppTypography provides typography,
+        LocalMyAIAppShape provides shapes,
         content = content
     )
 }

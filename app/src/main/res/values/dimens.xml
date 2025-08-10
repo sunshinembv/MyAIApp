@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="indent_2dp">2dp</dimen>
+    <dimen name="indent_4dp">4dp</dimen>
+    <dimen name="indent_10dp">10dp</dimen>
+    <dimen name="indent_12dp">12dp</dimen>
+    <dimen name="indent_16dp">16dp</dimen>
+
+    <dimen name="own_message_indent">120dp</dimen>
+    <dimen name="llm_message_indent">120dp</dimen>
+</resources>

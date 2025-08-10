@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
+    id("org.jetbrains.kotlin.kapt")
 }
 
 android {
@@ -28,11 +30,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
-    kotlinOptions {
-        jvmTarget = "11"
+    kotlin {
+        jvmToolchain(21)
     }
     buildFeatures {
         compose = true
@@ -41,19 +43,50 @@ android {
 
 dependencies {
 
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(libs.androidx.core)
+    implementation(libs.androidx.lifecycle)
+    implementation(libs.activity.compose)
+    implementation(libs.compose.ui)
+    implementation(libs.compose.constraintlayout)
+    implementation(libs.compose.preview)
+    implementation(libs.compose.material)
+    implementation(libs.androidx.lifecycle.runtimeCompose)
+
+    //Navigation
+    implementation(libs.androidx.navigation)
+
+    //Coroutines
+    implementation(libs.coroutines.core)
+    implementation(libs.coroutines.android)
+
+    //DI
+    implementation(libs.dagger)
+    kapt(libs.dagger.compiler)
+
+    //Room
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+
+    //Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.converter.moshi)
+
+    //Okhttp3
+    implementation(libs.okhttp3.logging.interceptor)
+
+    //Moshi
+    implementation(libs.moshi)
+    implementation(libs.moshi.kotlin)
+    ksp(libs.moshi.kotlin.codegen)
+
+    //Accompanist
+    implementation(libs.accompanist.systemuicontroller)
+
+    //Coil
+    implementation(libs.coil)
+
+    androidTestImplementation(libs.compose.ui.test.junit4)
+    debugImplementation(libs.compose.uiTooling)
+    debugImplementation(libs.compose.ui.test.manifest)
 }
