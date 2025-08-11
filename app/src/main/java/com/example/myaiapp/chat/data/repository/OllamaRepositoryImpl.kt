@@ -1,26 +1,37 @@
 package com.example.myaiapp.chat.data.repository
 
-import com.example.myaiapp.chat.data.mapper.ChatMessagesMapper
-import com.example.myaiapp.chat.domain.model.ChatMessage
-import com.example.myaiapp.chat.domain.model.ChatRequest
-import com.example.myaiapp.chat.domain.model.Role
+import com.example.myaiapp.chat.data.model.OllamaChatMessage
+import com.example.myaiapp.chat.data.model.OllamaChatRequest
+import com.example.myaiapp.chat.data.model.OllamaChatResponse
+import com.example.myaiapp.chat.data.model.OllamaOptions
+import com.example.myaiapp.chat.data.model.Role
 import com.example.myaiapp.chat.domain.repository.OllamaRepository
 import com.example.myaiapp.network.AIApi
 import javax.inject.Inject
 
 class OllamaRepositoryImpl @Inject constructor(
     private val api: AIApi,
-    private val mapper: ChatMessagesMapper,
-) : OllamaRepository {
+): OllamaRepository {
 
-    override suspend fun chatOnce(model: String, content: String, history: List<ChatMessage>): ChatMessage {
+    override suspend fun chatOnce(model: String, systemPrompt: String, content: String, history: List<OllamaChatMessage>): OllamaChatResponse {
         val messages = buildList {
             addAll(history)
-            add(ChatMessage(role = Role.USER, content = content))
+            add(OllamaChatMessage(role = Role.USER, content = content))
         }
-        val request = mapper.toChatRequestData(ChatRequest(model = model, messages = messages))
-        val response = api.chatOnce(request)
-        val message = mapper.toChatMessage(response.message)
-        return message
+        val request = OllamaChatRequest(
+            model = model,
+            messages = messages,
+            // Критично для «только JSON» в Ollama:
+            format = "json",
+            options = OllamaOptions(
+                temperature = 0.1,
+                topP = 0.95,
+                numCtx = 4096,
+                stop = listOf("```") // страховка от кодовых блоков
+            ),
+            stream = false,
+            keepAlive = "5m"
+        )
+        return api.chatOnce(request)
     }
 }

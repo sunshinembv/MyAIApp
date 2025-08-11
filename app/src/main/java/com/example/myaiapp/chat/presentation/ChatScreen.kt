@@ -21,7 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myaiapp.R
-import com.example.myaiapp.chat.domain.model.LlmState
+import com.example.myaiapp.chat.domain.model.format_response.StructuredResponse
 import com.example.myaiapp.chat.presentation.preview_data.ChatStatePreviewParameterProvider
 import com.example.myaiapp.chat.presentation.state.ChatEvents
 import com.example.myaiapp.chat.presentation.state.ChatState
@@ -42,9 +42,9 @@ fun ChatRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     ChatScreen(
-        state,
-        popBackStack,
-        viewModel::obtainEvent,
+        chatState = state,
+        popBackStack = popBackStack,
+        obtainEvent = viewModel::obtainEvent,
         modifier = modifier
     )
 }
@@ -57,73 +57,40 @@ fun ChatScreen(
     obtainEvent: (ChatEvents.Ui) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-
-    val navigationIcon = AppTopAppBarIconItem(
-        iconId = R.drawable.baseline_arrow_back_24,
-    ) {
-        popBackStack.invoke()
-    }
-
     Scaffold(
-        topBar = {
-            AppTopAppBar(
-                title = "Ollama",
-                navigationIcon = navigationIcon
-            )
-        },
+        topBar = { ChatTopBar(onBack = popBackStack) },
         bottomBar = {
-            SendMessageTextField(
-                value = chatState.typedText.orEmpty(),
-                onTextChange = { text ->
-                    obtainEvent(
-                        ChatEvents.Ui.Typing(
-                            text
-                        )
-                    )
-                },
+            ChatBottomBar(
+                typedText = chatState.typedText.orEmpty(),
+                onTextChange = { text -> obtainEvent(ChatEvents.Ui.Typing(text)) },
                 onSend = {
                     obtainEvent(
                         ChatEvents.Ui.CallLlm(
                             history = chatState.history,
                             content = chatState.typedText.orEmpty(),
-                            model = chatState.model.modelName
+                            model = chatState.model
                         )
                     )
                 }
             )
         },
-        backgroundColor = MyAIAppTheme.colors.chatBackgroundColor,
-        content = { padding ->
-            if (chatState.error == null) {
-                MessageList(
-                    messages = ImmutableList(
-                        chatState.history.list.reversed()
-                    ),
-                    pending = chatState.loading,
-                    modifier = modifier.padding(padding)
-                )
-            } else {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(chatState.error)
-                }
-            }
-        }
-    )
+        backgroundColor = MyAIAppTheme.colors.chatBackgroundColor
+    ) { padding ->
+        ChatContent(
+            chatState = chatState,
+            modifier = modifier.padding(padding)
+        )
+    }
 }
 
 @Composable
 fun MessageList(
     messages: ImmutableList<MessageUiModel>,
-    pending: Boolean,
     modifier: Modifier = Modifier
 ) {
     if (messages.list.isEmpty()) {
         Box(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -149,13 +116,13 @@ fun MessageList(
                 ) {
                     if (message.isOwnMessage) {
                         OwnMessage(
-                            text = message.content,
+                            text = message.content.orEmpty(),
                             modifier = Modifier.padding(start = dimensionResource(id = R.dimen.own_message_indent)),
                         )
                     } else {
                         LlmMessage(
-                            text = message.content,
-                            pending = pending && message.content == LlmState.THINKS.state,
+                            response = message.response ?: StructuredResponse.EMPTY,
+                            pending = message.pending,
                             modifier = Modifier.padding(end = dimensionResource(id = R.dimen.llm_message_indent)),
                         )
                     }
@@ -165,9 +132,52 @@ fun MessageList(
     }
 }
 
-@Preview(
-    uiMode = Configuration.UI_MODE_NIGHT_YES
-)
+@Composable
+private fun ChatTopBar(onBack: () -> Unit) {
+    val navigationIcon = AppTopAppBarIconItem(
+        iconId = R.drawable.baseline_arrow_back_24,
+        onClick = { onBack() }
+    )
+    AppTopAppBar(
+        title = "Ollama",
+        navigationIcon = navigationIcon
+    )
+}
+
+@Composable
+private fun ChatBottomBar(
+    typedText: String,
+    onTextChange: (String) -> Unit,
+    onSend: () -> Unit,
+) {
+    SendMessageTextField(
+        value = typedText,
+        onTextChange = onTextChange,
+        onSend = onSend
+    )
+}
+
+@Composable
+private fun ChatContent(
+    chatState: ChatState,
+    modifier: Modifier = Modifier,
+) {
+    if (chatState.error == null) {
+        MessageList(
+            messages = ImmutableList(chatState.history.list.reversed()),
+            modifier = modifier
+        )
+    } else {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(chatState.error)
+        }
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ChatScreenPreview(
     @PreviewParameter(ChatStatePreviewParameterProvider::class)

@@ -2,7 +2,7 @@ package com.example.myaiapp.chat.data.model
 
 import com.squareup.moshi.Json
 
-enum class RoleData {
+enum class Role {
     @Json(name = "user")
     USER,
 
