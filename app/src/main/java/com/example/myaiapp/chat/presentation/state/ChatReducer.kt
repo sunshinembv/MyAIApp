@@ -1,7 +1,7 @@
 package com.example.myaiapp.chat.presentation.state
 
+import com.example.myaiapp.chat.data.model.Role
 import com.example.myaiapp.chat.domain.model.LlmState
-import com.example.myaiapp.chat.domain.model.Role
 import com.example.myaiapp.chat.presentation.state.ChatCommand.CallLlm
 import com.example.myaiapp.chat.presentation.ui_model.MessageUiModel
 import com.example.myaiapp.core.Reducer
@@ -22,26 +22,8 @@ class ChatReducer @Inject constructor(
                 Result(null)
             }
 
-            is ChatEvents.Internal.MessageLoaded -> {
-
-                val idx = state.history.list.indexOfLast { it.role == Role.ASSISTANT && it.pending }
-                val newHistory = if (idx >= 0) {
-                    state.history.list.toMutableList().apply {
-                        this[idx] = this[idx].copy(content = event.message.content, pending = false)
-                    }
-                } else state.history.list
-
-                val newState = state.copy(
-                    history = ImmutableList(newHistory),
-                    loading = false,
-                )
-                setState(newState)
-                Result(null)
-            }
-
             is ChatEvents.Ui.CallLlm -> {
-
-                val placeholder = MessageUiModel(
+                val assistantPlaceholder = MessageUiModel(
                     role = Role.ASSISTANT,
                     content = LlmState.THINKS.state,
                     isOwnMessage = false,
@@ -59,7 +41,7 @@ class ChatReducer @Inject constructor(
                     newHistory.add(it)
                 }
                 newHistory.add(userMessage)
-                newHistory.add(placeholder)
+                newHistory.add(assistantPlaceholder)
 
                 setState(
                     state.copy(
@@ -82,6 +64,23 @@ class ChatReducer @Inject constructor(
                 setState(
                     state.copy(typedText = event.text)
                 )
+                Result(null)
+            }
+
+            is ChatEvents.Internal.Parsed -> {
+
+                val idx = state.history.list.indexOfLast { it.role == Role.ASSISTANT && it.pending }
+                val newHistory = if (idx >= 0) {
+                    state.history.list.toMutableList().apply {
+                        this[idx] = this[idx].copy(response = event.response, pending = false, content = null)
+                    }
+                } else state.history.list
+
+                val newState = state.copy(
+                    history = ImmutableList(newHistory),
+                    loading = false,
+                )
+                setState(newState)
                 Result(null)
             }
         }

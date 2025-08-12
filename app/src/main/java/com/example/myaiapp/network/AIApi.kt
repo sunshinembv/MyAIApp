@@ -1,14 +1,12 @@
 package com.example.myaiapp.network
 
-import com.example.myaiapp.chat.data.model.ChatRequestData
-import com.example.myaiapp.chat.data.model.ChatResponseData
+import com.example.myaiapp.chat.data.model.OllamaChatRequest
+import com.example.myaiapp.chat.data.model.OllamaChatResponse
 import retrofit2.http.Body
-import retrofit2.http.Headers
 import retrofit2.http.POST
 
 interface AIApi {
 
     @POST("api/chat")
-    @Headers("Content-Type: application/json")
-    suspend fun chatOnce(@Body body: ChatRequestData): ChatResponseData
+    suspend fun chatOnce(@Body body: OllamaChatRequest): OllamaChatResponse
 }

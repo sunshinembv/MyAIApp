@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlin.serialization)
     id("org.jetbrains.kotlin.kapt")
 }
 
@@ -85,6 +86,9 @@ dependencies {
 
     //Coil
     implementation(libs.coil)
+
+    //Kotlinx
+    implementation(libs.kotlinx.serialization.json)
 
     androidTestImplementation(libs.compose.ui.test.junit4)
     debugImplementation(libs.compose.uiTooling)

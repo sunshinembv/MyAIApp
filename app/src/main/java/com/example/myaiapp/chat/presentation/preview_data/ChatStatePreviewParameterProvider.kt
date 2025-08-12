@@ -1,7 +1,7 @@
 package com.example.myaiapp.chat.presentation.preview_data
 
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import com.example.myaiapp.chat.domain.model.Role
+import com.example.myaiapp.chat.data.model.Role
 import com.example.myaiapp.chat.presentation.state.ChatState
 import com.example.myaiapp.chat.presentation.ui_model.MessageUiModel
 import com.example.myaiapp.utils.ImmutableList
