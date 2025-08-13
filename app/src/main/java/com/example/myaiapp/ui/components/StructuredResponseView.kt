@@ -9,23 +9,25 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.myaiapp.chat.domain.model.format_response.StructuredResponse
+import com.example.myaiapp.chat.data.model.StructuredResponse
 
 @Composable
 fun StructuredResponseView(response: StructuredResponse, modifier: Modifier) {
     Column(modifier = modifier.padding(8.dp)) {
         Text(
-            text = response.topic,
+            text = response.title,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = response.summary,
+            text = response.subtitle,
             fontSize = 16.sp,
             fontStyle = FontStyle.Italic
         )
-        for (fact in response.facts) {
-            Text(text = "${fact.label}: ${fact.value}")
-        }
+        Text(
+            text = response.summary,
+            fontSize = 14.sp,
+            fontStyle = FontStyle.Normal
+        )
     }
 }
