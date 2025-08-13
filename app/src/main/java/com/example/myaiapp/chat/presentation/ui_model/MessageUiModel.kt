@@ -1,7 +1,7 @@
 package com.example.myaiapp.chat.presentation.ui_model
 
 import com.example.myaiapp.chat.data.model.Role
-import com.example.myaiapp.chat.domain.model.format_response.StructuredResponse
+import com.example.myaiapp.chat.data.model.StructuredResponse
 
 data class MessageUiModel(
     val role: Role,

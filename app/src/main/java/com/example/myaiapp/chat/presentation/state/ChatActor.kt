@@ -1,42 +1,39 @@
 package com.example.myaiapp.chat.presentation.state
 
+import com.example.myaiapp.chat.data.model.LlmReply
+import com.example.myaiapp.chat.data.model.StructuredResponse
 import com.example.myaiapp.chat.data.repository.OllamaRepositoryImpl
 import com.example.myaiapp.chat.domain.PromptBuilder
-import com.example.myaiapp.chat.domain.StructuredParsers
 import com.example.myaiapp.chat.domain.model.OutputFormat
-import com.example.myaiapp.chat.presentation.mapper.MessageMapper
 import com.example.myaiapp.core.Actor
 import javax.inject.Inject
 
 class ChatActor @Inject constructor(
     private val repository: OllamaRepositoryImpl,
-    private val mapper: MessageMapper,
     private val promptBuilder: PromptBuilder,
-    private val parsers: StructuredParsers,
 ) : Actor<ChatCommand, ChatEvents.Internal> {
 
     override suspend fun execute(command: ChatCommand, onEvent: (ChatEvents.Internal) -> Unit) {
-        try {
-            when (command) {
-                is ChatCommand.CallLlm -> {
-                    val systemPrompt = promptBuilder.systemPrompt(OutputFormat.JSON)
-                    val userPrompt = promptBuilder.userInstructionForTopic(command.content, OutputFormat.JSON)
+        when (command) {
+            is ChatCommand.CallLlm -> {
+                val systemPrompt = promptBuilder.systemPrompt(OutputFormat.JSON)
 
-                    val result = repository.chatOnce(
-                        model = command.model.modelName,
-                        systemPrompt = systemPrompt,
-                        content = userPrompt,
-                        history = mapper.toChatMessages(command.history.list),
-                    )
+                val result = repository.chatOnce(
+                    model = command.model.modelName,
+                    systemPrompt = systemPrompt,
+                    content = command.content,
+                    history = command.rawHistory,
+                )
 
-                    val structured = when (OutputFormat.JSON) {
-                        OutputFormat.JSON -> parsers.fromJson(result.message.content)
+                when (result) {
+                    is LlmReply.Json -> {
+                        onEvent(ChatEvents.Internal.Parsed(result.value as StructuredResponse, result.rawAssistant))
                     }
-                    onEvent(ChatEvents.Internal.Parsed(structured))
+                    is LlmReply.Text -> {
+                        onEvent(ChatEvents.Internal.MessageLoaded(result.text, result.rawAssistant))
+                    }
                 }
             }
-        } catch (t: Throwable) {
-            onEvent(ChatEvents.Internal.ErrorLoading(t))
         }
     }
 }

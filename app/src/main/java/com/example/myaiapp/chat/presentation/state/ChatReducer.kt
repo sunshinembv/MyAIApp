@@ -56,6 +56,7 @@ class ChatReducer @Inject constructor(
                     event.history,
                     event.content,
                     event.model,
+                    event.rawHistory
                 )
                 Result(command)
             }
@@ -79,6 +80,24 @@ class ChatReducer @Inject constructor(
                 val newState = state.copy(
                     history = ImmutableList(newHistory),
                     loading = false,
+                    rawHistory = event.rawAssistantHistory,
+                )
+                setState(newState)
+                Result(null)
+            }
+
+            is ChatEvents.Internal.MessageLoaded -> {
+                val idx = state.history.list.indexOfLast { it.role == Role.ASSISTANT && it.pending }
+                val newHistory = if (idx >= 0) {
+                    state.history.list.toMutableList().apply {
+                        this[idx] = this[idx].copy(response = null, pending = false, content = event.message)
+                    }
+                } else state.history.list
+
+                val newState = state.copy(
+                    history = ImmutableList(newHistory),
+                    loading = false,
+                    rawHistory = event.rawAssistantHistory,
                 )
                 setState(newState)
                 Result(null)

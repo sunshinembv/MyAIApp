@@ -21,12 +21,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myaiapp.R
-import com.example.myaiapp.chat.domain.model.format_response.StructuredResponse
+import com.example.myaiapp.chat.data.model.StructuredResponse
 import com.example.myaiapp.chat.presentation.preview_data.ChatStatePreviewParameterProvider
 import com.example.myaiapp.chat.presentation.state.ChatEvents
 import com.example.myaiapp.chat.presentation.state.ChatState
 import com.example.myaiapp.chat.presentation.ui_model.MessageUiModel
 import com.example.myaiapp.ui.components.LlmMessage
+import com.example.myaiapp.ui.components.LlmSummary
 import com.example.myaiapp.ui.components.OwnMessage
 import com.example.myaiapp.ui.components.SendMessageTextField
 import com.example.myaiapp.ui.components.basic.AppTopAppBar
@@ -68,7 +69,8 @@ fun ChatScreen(
                         ChatEvents.Ui.CallLlm(
                             history = chatState.history,
                             content = chatState.typedText.orEmpty(),
-                            model = chatState.model
+                            model = chatState.model,
+                            rawHistory = chatState.rawHistory
                         )
                     )
                 }
@@ -120,11 +122,18 @@ fun MessageList(
                             modifier = Modifier.padding(start = dimensionResource(id = R.dimen.own_message_indent)),
                         )
                     } else {
-                        LlmMessage(
-                            response = message.response ?: StructuredResponse.EMPTY,
-                            pending = message.pending,
-                            modifier = Modifier.padding(end = dimensionResource(id = R.dimen.llm_message_indent)),
-                        )
+                        if (message.content != null) {
+                            LlmMessage(
+                                text = message.content,
+                                pending = message.pending,
+                            )
+                        } else {
+                            LlmSummary(
+                                response = message.response ?: StructuredResponse.EMPTY,
+                                pending = message.pending,
+                                modifier = Modifier.padding(end = dimensionResource(id = R.dimen.llm_message_indent)),
+                            )
+                        }
                     }
                 }
             }

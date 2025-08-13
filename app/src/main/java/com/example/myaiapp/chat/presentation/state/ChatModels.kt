@@ -1,8 +1,9 @@
 package com.example.myaiapp.chat.presentation.state
 
+import com.example.myaiapp.chat.data.model.OllamaChatMessage
 import com.example.myaiapp.chat.domain.model.LlmModels
 import com.example.myaiapp.chat.domain.model.OutputFormat
-import com.example.myaiapp.chat.domain.model.format_response.StructuredResponse
+import com.example.myaiapp.chat.data.model.StructuredResponse
 import com.example.myaiapp.chat.presentation.ui_model.MessageUiModel
 import com.example.myaiapp.core.Command
 import com.example.myaiapp.core.Event
@@ -17,6 +18,7 @@ data class ChatState(
     val isEmptyState: Boolean = true,
     val typedText: String? = null,
     val outputFormat: OutputFormat? = null,
+    val rawHistory: List<OllamaChatMessage> = emptyList(),
 ) : State
 
 sealed class ChatEvents : Event {
@@ -25,14 +27,17 @@ sealed class ChatEvents : Event {
             val history: ImmutableList<MessageUiModel>,
             val content: String,
             val model: LlmModels,
+            val rawHistory: List<OllamaChatMessage>
         ) : Ui()
 
         data class Typing(val text: String) : Ui()
     }
 
     sealed class Internal : ChatEvents() {
+        data class MessageLoaded(val message: String, val rawAssistantHistory: List<OllamaChatMessage>) :
+            Internal()
 
-        data class Parsed(val response: StructuredResponse) :
+        data class Parsed(val response: StructuredResponse, val rawAssistantHistory: List<OllamaChatMessage>) :
             Internal()
 
         data class ErrorLoading(val error: Throwable) : Internal()
@@ -44,5 +49,6 @@ sealed class ChatCommand : Command {
         val history: ImmutableList<MessageUiModel>,
         val content: String,
         val model: LlmModels,
+        val rawHistory: List<OllamaChatMessage>
     ) : ChatCommand()
 }
