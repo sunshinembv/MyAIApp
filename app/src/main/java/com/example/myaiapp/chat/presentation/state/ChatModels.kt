@@ -1,9 +1,10 @@
 package com.example.myaiapp.chat.presentation.state
 
 import com.example.myaiapp.chat.data.model.OllamaChatMessage
+import com.example.myaiapp.chat.data.model.Summary
+import com.example.myaiapp.chat.data.model.Verify
 import com.example.myaiapp.chat.domain.model.LlmModels
 import com.example.myaiapp.chat.domain.model.OutputFormat
-import com.example.myaiapp.chat.data.model.StructuredResponse
 import com.example.myaiapp.chat.presentation.ui_model.MessageUiModel
 import com.example.myaiapp.core.Command
 import com.example.myaiapp.core.Event
@@ -34,11 +35,10 @@ sealed class ChatEvents : Event {
     }
 
     sealed class Internal : ChatEvents() {
-        data class MessageLoaded(val message: String, val rawAssistantHistory: List<OllamaChatMessage>) :
+        data class MessageLoaded(val message: String) :
             Internal()
 
-        data class Parsed(val response: StructuredResponse, val rawAssistantHistory: List<OllamaChatMessage>) :
-            Internal()
+        data class SummeryAndReviewLoaded(val summary: Summary, val verify: Verify): Internal()
 
         data class ErrorLoading(val error: Throwable) : Internal()
     }

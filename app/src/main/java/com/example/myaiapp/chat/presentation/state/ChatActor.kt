@@ -1,36 +1,34 @@
 package com.example.myaiapp.chat.presentation.state
 
-import com.example.myaiapp.chat.data.model.LlmReply
-import com.example.myaiapp.chat.data.model.StructuredResponse
 import com.example.myaiapp.chat.data.repository.OllamaRepositoryImpl
 import com.example.myaiapp.chat.domain.PromptBuilder
-import com.example.myaiapp.chat.domain.model.OutputFormat
+import com.example.myaiapp.chat.domain.agent_orchestrator.TwoAgentOrchestrator
+import com.example.myaiapp.chat.domain.agent_orchestrator.model.OrchestratorResult
+import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.MessageLoaded
+import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.SummeryAndReviewLoaded
 import com.example.myaiapp.core.Actor
 import javax.inject.Inject
 
 class ChatActor @Inject constructor(
     private val repository: OllamaRepositoryImpl,
+    private val orchestrator: TwoAgentOrchestrator,
     private val promptBuilder: PromptBuilder,
 ) : Actor<ChatCommand, ChatEvents.Internal> {
 
     override suspend fun execute(command: ChatCommand, onEvent: (ChatEvents.Internal) -> Unit) {
         when (command) {
             is ChatCommand.CallLlm -> {
-                val systemPrompt = promptBuilder.systemPrompt(OutputFormat.JSON)
 
-                val result = repository.chatOnce(
-                    model = command.model.modelName,
-                    systemPrompt = systemPrompt,
-                    content = command.content,
-                    history = command.rawHistory,
+                val result = orchestrator.userSays(
+                    text = command.content
                 )
 
                 when (result) {
-                    is LlmReply.Json -> {
-                        onEvent(ChatEvents.Internal.Parsed(result.value as StructuredResponse, result.rawAssistant))
+                    is OrchestratorResult.Ask -> {
+                        onEvent(MessageLoaded(result.question))
                     }
-                    is LlmReply.Text -> {
-                        onEvent(ChatEvents.Internal.MessageLoaded(result.text, result.rawAssistant))
+                    is OrchestratorResult.SummaryAndReview -> {
+                        onEvent(SummeryAndReviewLoaded(result.summary, result.verify))
                     }
                 }
             }

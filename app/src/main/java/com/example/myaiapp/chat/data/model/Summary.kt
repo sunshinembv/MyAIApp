@@ -3,13 +3,15 @@ package com.example.myaiapp.chat.data.model
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class StructuredResponse(
+data class Summary(
     val title: String,
     val subtitle: String,
     val summary: String,
 ) {
-    companion object {
-        val EMPTY = StructuredResponse(
+    companion object Companion {
+
+        val agentName = "InterviewAgent"
+        val EMPTY = Summary(
             title = "",
             subtitle = "",
             summary = "",

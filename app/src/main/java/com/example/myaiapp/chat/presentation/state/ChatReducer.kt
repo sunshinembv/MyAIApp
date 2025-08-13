@@ -68,36 +68,33 @@ class ChatReducer @Inject constructor(
                 Result(null)
             }
 
-            is ChatEvents.Internal.Parsed -> {
-
+            is ChatEvents.Internal.MessageLoaded -> {
                 val idx = state.history.list.indexOfLast { it.role == Role.ASSISTANT && it.pending }
                 val newHistory = if (idx >= 0) {
                     state.history.list.toMutableList().apply {
-                        this[idx] = this[idx].copy(response = event.response, pending = false, content = null)
+                        this[idx] = this[idx].copy(response = null, pending = false, content = event.message, verify = null)
                     }
                 } else state.history.list
 
                 val newState = state.copy(
                     history = ImmutableList(newHistory),
                     loading = false,
-                    rawHistory = event.rawAssistantHistory,
                 )
                 setState(newState)
                 Result(null)
             }
 
-            is ChatEvents.Internal.MessageLoaded -> {
+            is ChatEvents.Internal.SummeryAndReviewLoaded -> {
                 val idx = state.history.list.indexOfLast { it.role == Role.ASSISTANT && it.pending }
                 val newHistory = if (idx >= 0) {
                     state.history.list.toMutableList().apply {
-                        this[idx] = this[idx].copy(response = null, pending = false, content = event.message)
+                        this[idx] = this[idx].copy(response = event.summary, pending = false, verify = event.verify, content = null)
                     }
                 } else state.history.list
 
                 val newState = state.copy(
                     history = ImmutableList(newHistory),
                     loading = false,
-                    rawHistory = event.rawAssistantHistory,
                 )
                 setState(newState)
                 Result(null)

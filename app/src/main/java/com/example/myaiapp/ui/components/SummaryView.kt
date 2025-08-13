@@ -9,11 +9,20 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.myaiapp.chat.data.model.StructuredResponse
+import com.example.myaiapp.chat.data.model.Summary
 
 @Composable
-fun StructuredResponseView(response: StructuredResponse, modifier: Modifier) {
+fun SummaryView(
+    agentName: String,
+    response: Summary,
+    modifier: Modifier
+) {
     Column(modifier = modifier.padding(8.dp)) {
+        Text(
+            text = agentName,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold
+        )
         Text(
             text = response.title,
             fontSize = 20.sp,
