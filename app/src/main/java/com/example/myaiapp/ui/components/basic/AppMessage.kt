@@ -20,6 +20,7 @@ import com.example.myaiapp.ui.theme.MyAIAppTheme
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppMessage(
+    agentName: String? = null,
     text: String,
     color: Color,
     pending: Boolean = false,
@@ -32,7 +33,7 @@ fun AppMessage(
         ConstraintLayout(
             modifier = Modifier.padding(dimensionResource(id = R.dimen.indent_10dp))
         ) {
-            val (textId, progressId) = createRefs()
+            val (agentId, textId, progressId) = createRefs()
             if (pending) {
                 CircularProgressIndicator(
                     modifier = Modifier
@@ -44,10 +45,21 @@ fun AppMessage(
                     strokeWidth = dimensionResource(id = R.dimen.indent_2dp)
                 )
             }
+            if (agentName != null) {
+                Text(
+                    text = agentName,
+                    modifier = Modifier.constrainAs(agentId) {
+                        start.linkTo(progressId.end, margin = 8.dp)
+                        bottom.linkTo(textId.top, margin = 4.dp)
+                    },
+                    color = MyAIAppTheme.colors.primaryTextColor
+                )
+            }
             Text(
                 text = text,
                 modifier = Modifier.constrainAs(textId) {
                     start.linkTo(progressId.end, margin = 8.dp)
+                    top.linkTo(agentId.bottom)
                 },
                 color = MyAIAppTheme.colors.primaryTextColor
             )

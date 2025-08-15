@@ -3,7 +3,7 @@ package com.example.myaiapp.chat.data
 import com.example.myaiapp.chat.data.model.Ask
 import com.example.myaiapp.chat.data.model.LlmReply
 import com.example.myaiapp.chat.data.model.OllamaChatMessage
-import com.example.myaiapp.chat.data.model.StructuredResponse
+import com.example.myaiapp.chat.data.model.Summary
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import javax.inject.Inject
@@ -16,7 +16,7 @@ class LlmContentParser @Inject constructor() {
     /** Пробуем распарсить в конкретный DTO; при провале — Text */
     fun parseAs(content: String, rawAssistant: List<OllamaChatMessage>): LlmReply {
         val askAdapter = moshi.adapter(Ask::class.java)
-        val summaryAdapter = moshi.adapter(StructuredResponse::class.java)
+        val summaryAdapter = moshi.adapter(Summary::class.java)
 
         val json = extractFirstJson(content) ?: error("No JSON found")
 
@@ -26,7 +26,7 @@ class LlmContentParser @Inject constructor() {
 
         return when (turn) {
             is Ask -> LlmReply.Text(turn.q, rawAssistant)
-            is StructuredResponse -> LlmReply.Json(turn, rawAssistant)
+            is Summary -> LlmReply.Json(turn, rawAssistant)
             else -> error("Unknown JSON shape")
         }
     }
@@ -60,7 +60,7 @@ class LlmContentParser @Inject constructor() {
 
     fun normalizeAssistantContent(raw: String): String? {
         val chosen = choosePreferred(extractJsonObjects(raw)) ?: return null
-        return chosen + "<<<END>>>"
+        return "$chosen<<<END>>>"
     }
 
     fun extractJsonObjects(raw: String): List<String> {

@@ -1,8 +1,10 @@
 package com.example.myaiapp.chat.presentation
 
+import VerifyView
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,7 +23,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myaiapp.R
-import com.example.myaiapp.chat.data.model.StructuredResponse
+import com.example.myaiapp.chat.data.model.Summary
+import com.example.myaiapp.chat.data.model.Verify
 import com.example.myaiapp.chat.presentation.preview_data.ChatStatePreviewParameterProvider
 import com.example.myaiapp.chat.presentation.state.ChatEvents
 import com.example.myaiapp.chat.presentation.state.ChatState
@@ -124,15 +127,24 @@ fun MessageList(
                     } else {
                         if (message.content != null) {
                             LlmMessage(
+                                agentName = Summary.agentName,
                                 text = message.content,
                                 pending = message.pending,
                             )
                         } else {
-                            LlmSummary(
-                                response = message.response ?: StructuredResponse.EMPTY,
-                                pending = message.pending,
-                                modifier = Modifier.padding(end = dimensionResource(id = R.dimen.llm_message_indent)),
-                            )
+                            Column {
+                                LlmSummary(
+                                    agentName = Summary.agentName,
+                                    response = message.response ?: Summary.EMPTY,
+                                    pending = message.pending,
+                                    modifier = Modifier.padding(end = dimensionResource(id = R.dimen.llm_message_indent)),
+                                )
+                                VerifyView(
+                                    agentName = Verify.agentName,
+                                    verify = message.verify ?: Verify.EMPTY,
+                                    modifier = Modifier.padding(top = dimensionResource(id = R.dimen.indent_16dp), end = dimensionResource(id = R.dimen.llm_message_indent)),
+                                )
+                            }
                         }
                     }
                 }

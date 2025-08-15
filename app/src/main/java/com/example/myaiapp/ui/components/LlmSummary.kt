@@ -16,13 +16,14 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.example.myaiapp.R
-import com.example.myaiapp.chat.data.model.StructuredResponse
+import com.example.myaiapp.chat.data.model.Summary
 import com.example.myaiapp.ui.theme.MyAIAppTheme
 
 @Composable
 fun LlmSummary(
+    agentName: String,
     pending: Boolean,
-    response: StructuredResponse,
+    response: Summary,
     modifier: Modifier = Modifier,
     color: Color = MyAIAppTheme.colors.messageBackgroundColor
 ) {
@@ -50,11 +51,12 @@ fun LlmSummary(
                 }
 
                 if (pending) {
-                    StructuredResponsePlaceholder(
+                    SummaryViewPlaceholder(
                         modifier = structuredModifier
                     )
                 } else {
-                    StructuredResponseView(
+                    SummaryView(
+                        agentName = agentName,
                         modifier = structuredModifier,
                         response = response
                     )
@@ -65,7 +67,7 @@ fun LlmSummary(
 }
 
 @Composable
-private fun StructuredResponsePlaceholder(
+private fun SummaryViewPlaceholder(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
