@@ -1,7 +1,6 @@
 package com.example.myaiapp.chat.presentation.state
 
-import com.example.myaiapp.chat.data.repository.OllamaRepositoryImpl
-import com.example.myaiapp.chat.domain.PromptBuilder
+import com.example.myaiapp.chat.data.agents.mcp.MCPRepository
 import com.example.myaiapp.chat.domain.agent_orchestrator.TwoAgentOrchestrator
 import com.example.myaiapp.chat.domain.agent_orchestrator.model.OrchestratorResult
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.MessageLoaded
@@ -10,9 +9,8 @@ import com.example.myaiapp.core.Actor
 import javax.inject.Inject
 
 class ChatActor @Inject constructor(
-    private val repository: OllamaRepositoryImpl,
     private val orchestrator: TwoAgentOrchestrator,
-    private val promptBuilder: PromptBuilder,
+    private val mcpRepository: MCPRepository,
 ) : Actor<ChatCommand, ChatEvents.Internal> {
 
     override suspend fun execute(command: ChatCommand, onEvent: (ChatEvents.Internal) -> Unit) {
@@ -31,6 +29,14 @@ class ChatActor @Inject constructor(
                         onEvent(SummeryAndReviewLoaded(result.summary, result.verify))
                     }
                 }
+            }
+
+            is ChatCommand.CallLlmToMCP -> {
+                val result = mcpRepository.callLlmToMCP(
+                    command.content
+                )
+
+                onEvent(ChatEvents.Internal.MCPResponse(result))
             }
         }
     }
