@@ -69,7 +69,13 @@ fun ChatScreen(
                 onTextChange = { text -> obtainEvent(ChatEvents.Ui.Typing(text)) },
                 onSend = {
                     obtainEvent(
-                        ChatEvents.Ui.CallLlm(
+                        /*ChatEvents.Ui.CallLlm(
+                            history = chatState.history,
+                            content = chatState.typedText.orEmpty(),
+                            model = chatState.model,
+                            rawHistory = chatState.rawHistory
+                        )*/
+                        ChatEvents.Ui.CallLlmToMCP(
                             history = chatState.history,
                             content = chatState.typedText.orEmpty(),
                             model = chatState.model,

@@ -1,9 +1,8 @@
 package com.example.myaiapp.chat.domain
 
 import com.example.myaiapp.chat.domain.model.OutputFormat
-import javax.inject.Inject
 
-class PromptBuilder @Inject constructor() {
+object PromptBuilder {
 
     fun systemPrompt(format: OutputFormat): String = when (format) {
         OutputFormat.JSON -> """
@@ -77,6 +76,24 @@ class PromptBuilder @Inject constructor() {
             2) Лишь после A–E переходите к остальным пунктам (дизайн, интеграции, приватность, нефункциональные, ограничения/бюджет, метрики).
             3) Никогда не повторяйте последний заданный вопрос. Если на него получен ответ — пометьте пункт как заполненный и задайте следующий самый полезный недостающий.
             4) Не задавайте вопросы про инвестиции/бюджет до завершения A–E (если пользователь сам не поднял тему ограничения бюджета).
+        """.trimIndent()
+
+        OutputFormat.MCP -> """
+            You are a planning assistant that outputs ONLY strict JSON (no extra text).
+            Schema:
+            {
+              "action": "create_file",
+              "owner": "string",
+              "repo": "string",
+              "branch": "string",
+              "path": "string",
+              "content": "string",
+              "message": "string"
+            }
+            Rules:
+            - Always return valid JSON matching the schema.
+            - Do not add comments or extra keys.
+            - Use ASCII hyphen (-) in strings, not em-dash.
         """.trimIndent()
     }
 }

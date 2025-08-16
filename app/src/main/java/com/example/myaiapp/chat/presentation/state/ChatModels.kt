@@ -31,6 +31,13 @@ sealed class ChatEvents : Event {
             val rawHistory: List<OllamaChatMessage>
         ) : Ui()
 
+        data class CallLlmToMCP(
+            val history: ImmutableList<MessageUiModel>,
+            val content: String,
+            val model: LlmModels,
+            val rawHistory: List<OllamaChatMessage>
+        ) : Ui()
+
         data class Typing(val text: String) : Ui()
     }
 
@@ -40,12 +47,21 @@ sealed class ChatEvents : Event {
 
         data class SummeryAndReviewLoaded(val summary: Summary, val verify: Verify): Internal()
 
+        data class MCPResponse(val response: String): Internal()
+
         data class ErrorLoading(val error: Throwable) : Internal()
     }
 }
 
 sealed class ChatCommand : Command {
     data class CallLlm(
+        val history: ImmutableList<MessageUiModel>,
+        val content: String,
+        val model: LlmModels,
+        val rawHistory: List<OllamaChatMessage>
+    ) : ChatCommand()
+
+    data class CallLlmToMCP(
         val history: ImmutableList<MessageUiModel>,
         val content: String,
         val model: LlmModels,

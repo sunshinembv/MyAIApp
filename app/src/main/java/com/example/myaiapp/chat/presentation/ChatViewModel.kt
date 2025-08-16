@@ -29,6 +29,10 @@ class ChatViewModel(
             is ChatEvents.Ui.Typing -> {
                 handleOnlyEvent(event)
             }
+
+            is ChatEvents.Ui.CallLlmToMCP -> {
+                handleEvent(event)
+            }
         }
     }
 
