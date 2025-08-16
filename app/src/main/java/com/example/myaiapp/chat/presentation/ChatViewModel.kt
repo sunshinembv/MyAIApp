@@ -33,6 +33,10 @@ class ChatViewModel(
             is ChatEvents.Ui.CallLlmToMCP -> {
                 handleEvent(event)
             }
+
+            is ChatEvents.Ui.CallLlmToMCPGitHubPr -> {
+                handleEvent(event)
+            }
         }
     }
 

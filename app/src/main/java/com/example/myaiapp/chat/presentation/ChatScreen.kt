@@ -1,6 +1,5 @@
 package com.example.myaiapp.chat.presentation
 
-import VerifyView
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,14 +23,13 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myaiapp.R
 import com.example.myaiapp.chat.data.model.Summary
-import com.example.myaiapp.chat.data.model.Verify
 import com.example.myaiapp.chat.presentation.preview_data.ChatStatePreviewParameterProvider
 import com.example.myaiapp.chat.presentation.state.ChatEvents
 import com.example.myaiapp.chat.presentation.state.ChatState
 import com.example.myaiapp.chat.presentation.ui_model.MessageUiModel
 import com.example.myaiapp.ui.components.LlmMessage
-import com.example.myaiapp.ui.components.LlmSummary
 import com.example.myaiapp.ui.components.OwnMessage
+import com.example.myaiapp.ui.components.PrItem
 import com.example.myaiapp.ui.components.SendMessageTextField
 import com.example.myaiapp.ui.components.basic.AppTopAppBar
 import com.example.myaiapp.ui.components.basic.AppTopAppBarIconItem
@@ -75,7 +73,13 @@ fun ChatScreen(
                             model = chatState.model,
                             rawHistory = chatState.rawHistory
                         )*/
-                        ChatEvents.Ui.CallLlmToMCP(
+                        /*ChatEvents.Ui.CallLlmToMCP(
+                            history = chatState.history,
+                            content = chatState.typedText.orEmpty(),
+                            model = chatState.model,
+                            rawHistory = chatState.rawHistory
+                        )*/
+                        ChatEvents.Ui.CallLlmToMCPGitHubPr(
                             history = chatState.history,
                             content = chatState.typedText.orEmpty(),
                             model = chatState.model,
@@ -138,18 +142,23 @@ fun MessageList(
                                 pending = message.pending,
                             )
                         } else {
+                              /*Column {
+                                  LlmSummary(
+                                      agentName = Summary.agentName,
+                                      response = message.response ?: Summary.EMPTY,
+                                      pending = message.pending,
+                                      modifier = Modifier.padding(end = dimensionResource(id = R.dimen.llm_message_indent)),
+                                  )
+                                  VerifyView(
+                                      agentName = Verify.agentName,
+                                      verify = message.verify ?: Verify.EMPTY,
+                                      modifier = Modifier.padding(top = dimensionResource(id = R.dimen.indent_16dp), end = dimensionResource(id = R.dimen.llm_message_indent)),
+                                  )
+                              }*/
                             Column {
-                                LlmSummary(
-                                    agentName = Summary.agentName,
-                                    response = message.response ?: Summary.EMPTY,
-                                    pending = message.pending,
-                                    modifier = Modifier.padding(end = dimensionResource(id = R.dimen.llm_message_indent)),
-                                )
-                                VerifyView(
-                                    agentName = Verify.agentName,
-                                    verify = message.verify ?: Verify.EMPTY,
-                                    modifier = Modifier.padding(top = dimensionResource(id = R.dimen.indent_16dp), end = dimensionResource(id = R.dimen.llm_message_indent)),
-                                )
+                                message.prsBrief?.briefs?.map { pr ->
+                                    PrItem(pr = pr)
+                                }
                             }
                         }
                     }

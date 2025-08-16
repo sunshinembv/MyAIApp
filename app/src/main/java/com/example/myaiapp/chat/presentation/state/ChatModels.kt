@@ -1,6 +1,7 @@
 package com.example.myaiapp.chat.presentation.state
 
 import com.example.myaiapp.chat.data.model.OllamaChatMessage
+import com.example.myaiapp.chat.data.model.PrBrief
 import com.example.myaiapp.chat.data.model.Summary
 import com.example.myaiapp.chat.data.model.Verify
 import com.example.myaiapp.chat.domain.model.LlmModels
@@ -38,6 +39,13 @@ sealed class ChatEvents : Event {
             val rawHistory: List<OllamaChatMessage>
         ) : Ui()
 
+        data class CallLlmToMCPGitHubPr(
+            val history: ImmutableList<MessageUiModel>,
+            val content: String,
+            val model: LlmModels,
+            val rawHistory: List<OllamaChatMessage>
+        ) : Ui()
+
         data class Typing(val text: String) : Ui()
     }
 
@@ -48,6 +56,8 @@ sealed class ChatEvents : Event {
         data class SummeryAndReviewLoaded(val summary: Summary, val verify: Verify): Internal()
 
         data class MCPResponse(val response: String): Internal()
+
+        data class MCPResponseGitHubPr(val prBrief: List<PrBrief>): Internal()
 
         data class ErrorLoading(val error: Throwable) : Internal()
     }
@@ -62,6 +72,13 @@ sealed class ChatCommand : Command {
     ) : ChatCommand()
 
     data class CallLlmToMCP(
+        val history: ImmutableList<MessageUiModel>,
+        val content: String,
+        val model: LlmModels,
+        val rawHistory: List<OllamaChatMessage>
+    ) : ChatCommand()
+
+    data class CallLlmToMCPGitHubPr(
         val history: ImmutableList<MessageUiModel>,
         val content: String,
         val model: LlmModels,

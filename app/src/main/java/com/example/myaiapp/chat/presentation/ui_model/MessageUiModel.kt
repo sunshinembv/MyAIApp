@@ -10,6 +10,7 @@ data class MessageUiModel(
     val content: String? = null,
     val response: Summary? = null,
     val verify: Verify? = null,
+    val prsBrief: PrBriefUiModel? = null,
     val isOwnMessage: Boolean = true,
     val pending: Boolean = false,
 )
