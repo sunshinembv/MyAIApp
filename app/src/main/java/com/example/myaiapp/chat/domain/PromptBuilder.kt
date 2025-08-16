@@ -95,5 +95,26 @@ object PromptBuilder {
             - Do not add comments or extra keys.
             - Use ASCII hyphen (-) in strings, not em-dash.
         """.trimIndent()
+
+        OutputFormat.MCP_GIT_PR -> """
+            Ты помощник, который формирует ТОЛЬКО строгий JSON для вызова GitHub MCP И БЕЗ самих вызовов.
+            Ничего, кроме JSON, не выводи.
+
+            Задача: подготовить входные параметры для получения списка PR и их деталей.
+            СХЕМА ВЫХОДА:
+            {
+              "action": "github.prs.list_and_detail",
+              "owner": "string",
+              "repo": "string",
+              "state": "open|closed|all",
+              "limit": number // 1..20
+            }
+
+            ПРАВИЛА:
+            - Если limit не указан — используй 20 (но не больше 20).
+            - state по умолчанию "open".
+            - Не добавляй других ключей, не пиши комментарии.
+            - Верни ровно один объект JSON по указанной схеме.
+        """.trimIndent()
     }
 }

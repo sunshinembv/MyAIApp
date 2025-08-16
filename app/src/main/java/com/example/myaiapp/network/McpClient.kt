@@ -1,6 +1,10 @@
 package com.example.myaiapp.network
 
+import com.example.myaiapp.chat.data.McpGithubParsers
+import com.example.myaiapp.chat.data.model.GithubPrsInput
 import com.example.myaiapp.chat.data.model.Plan
+import com.example.myaiapp.chat.data.model.PrBrief
+import com.example.myaiapp.chat.data.model.PrRaw
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -78,4 +82,34 @@ class McpClient @Inject constructor() {
         }
         return rpc("tools/call", callParams, id = 2)
     }
+
+    fun fetchPrBriefs(githubPrsInput: GithubPrsInput): List<PrBrief> {
+        val list = rpc("tools/call", buildJsonObject {
+            put("name", "list_pull_requests")
+            put("arguments", buildJsonObject {
+                put("owner", githubPrsInput.owner); put("repo", githubPrsInput.repo)
+                put("state", githubPrsInput.state.asArg()); put("sort", "updated"); put("direction", "desc"); put("per_page", 50)
+            })
+        }, id = 10)
+
+        val briefsFromList: List<PrBrief> = McpGithubParsers.parsePrListFromMcpJson(list.toString())
+        val briefs: List<PrBrief> = briefsFromList.take(githubPrsInput.limit).mapIndexed { idx, item ->
+            val prResp: JsonObject = rpc(
+                "tools/call",
+                buildGetPrCall(githubPrsInput.owner, githubPrsInput.repo, item.number),
+                id = 11 + idx
+            )
+            val detail: PrRaw = McpGithubParsers.parsePrDetail(prResp.toString()) // ← строка
+            detail.toBrief().copy(title = item.title.ifBlank { detail.title })
+        }
+        return briefs
+    }
+
+    fun buildGetPrCall(owner: String, repo: String, number: Int, toolName: String = "get_pull_request"): JsonObject =
+        buildJsonObject {
+            put("name", toolName)
+            put("arguments", buildJsonObject {
+                put("owner", owner); put("repo", repo); put("pullNumber", number)
+            })
+        }
 }

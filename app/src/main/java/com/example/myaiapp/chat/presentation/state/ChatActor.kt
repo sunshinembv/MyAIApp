@@ -3,6 +3,8 @@ package com.example.myaiapp.chat.presentation.state
 import com.example.myaiapp.chat.data.agents.mcp.MCPRepository
 import com.example.myaiapp.chat.domain.agent_orchestrator.TwoAgentOrchestrator
 import com.example.myaiapp.chat.domain.agent_orchestrator.model.OrchestratorResult
+import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.MCPResponse
+import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.MCPResponseGitHubPr
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.MessageLoaded
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.SummeryAndReviewLoaded
 import com.example.myaiapp.core.Actor
@@ -36,8 +38,17 @@ class ChatActor @Inject constructor(
                     command.content
                 )
 
-                onEvent(ChatEvents.Internal.MCPResponse(result))
+                onEvent(MCPResponse(result))
             }
+
+            is ChatCommand.CallLlmToMCPGitHubPr -> {
+                val result = mcpRepository.callLlmToMCPGitHubPr(
+                    command.content
+                )
+
+                onEvent(MCPResponseGitHubPr(result))
+            }
+
         }
     }
 }
