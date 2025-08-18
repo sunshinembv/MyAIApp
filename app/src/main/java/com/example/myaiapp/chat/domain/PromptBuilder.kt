@@ -107,7 +107,8 @@ object PromptBuilder {
               "owner": "string",
               "repo": "string",
               "state": "open|closed|all",
-              "limit": number // 1..20
+              "limit": number, // 1..20
+              "pageName": "string"
             }
 
             ПРАВИЛА:

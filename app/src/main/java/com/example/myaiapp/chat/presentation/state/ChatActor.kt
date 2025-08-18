@@ -46,6 +46,8 @@ class ChatActor @Inject constructor(
                     command.content
                 )
 
+                mcpRepository.callLlmToMCPPrReport(command.content)
+
                 onEvent(MCPResponseGitHubPr(result))
             }
 

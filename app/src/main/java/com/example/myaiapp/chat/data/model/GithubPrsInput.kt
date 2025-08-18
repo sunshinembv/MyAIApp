@@ -11,7 +11,8 @@ data class GithubPrsInput(
     val owner: String,
     val repo: String,
     val state: PrState = PrState.OPEN,
-    val limit: Int = 20          // 1..20
+    val limit: Int = 20,
+    val pageName: String,
 ) {
     fun validate(): GithubPrsInput {
         require(action == ACTION) { "action must be \"$ACTION\"" }

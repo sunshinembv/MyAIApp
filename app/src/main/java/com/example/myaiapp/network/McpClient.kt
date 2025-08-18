@@ -7,6 +7,7 @@ import com.example.myaiapp.chat.data.model.PrBrief
 import com.example.myaiapp.chat.data.model.PrRaw
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
@@ -16,17 +17,20 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 
-private const val GITHUB_PAT = "GITHUB_PAT"
+private const val GITHUB_PAT = ""
 
 private const val MCP_URL = "https://api.githubcopilot.com/mcp/"
 private val JSON = Json { ignoreUnknownKeys = true; prettyPrint = true }
 private val JSON_MEDIA = "application/json".toMediaType()
 
 private const val PROTO = "2025-06-18"
+private const val MCP_NOTION_AUTH = ""
+private const val MCP_NOTION_URL = "http://10.0.2.2:3000/mcp"
 
 class McpClient @Inject constructor() {
     private val http = OkHttpClient()
     private var sessionId: String? = null
+    private var notionSessionId: String? = null
 
     private fun rpc(method: String, params: JsonObject? = null, id: Int = 1): JsonObject {
         val payload = buildJsonObject {
@@ -56,6 +60,42 @@ class McpClient @Inject constructor() {
         }
     }
 
+    private fun rpcNotion(method: String, params: JsonObject? = null, id: Int = 1001): JsonObject {
+        val payload = buildJsonObject {
+            put("jsonrpc", "2.0"); put("id", id); put("method", method)
+            if (params != null) put("params", params)
+        }
+
+        val reqB = Request.Builder()
+            .url(MCP_NOTION_URL)
+            .addHeader("Authorization", "Bearer $MCP_NOTION_AUTH")
+            .addHeader("Accept", "application/json, text/event-stream")
+            .addHeader("Content-Type", "application/json")
+            .addHeader("MCP-Protocol-Version", PROTO)
+
+        notionSessionId?.let { reqB.addHeader("Mcp-Session-Id", it) }
+
+        val req = reqB.post(JSON.encodeToString(payload).toRequestBody(JSON_MEDIA)).build()
+
+        http.newCall(req).execute().use { resp ->
+            val raw = resp.body?.string() ?: ""
+            resp.header("Mcp-Session-Id")?.let { notionSessionId = it }
+
+            if (!resp.isSuccessful) error("HTTP ${resp.code}: $raw")
+
+            // Если ответ в виде SSE, берём содержимое после data:
+            val jsonStr = if (raw.startsWith("event:")) {
+                raw.lines().firstOrNull { it.startsWith("data:") }
+                    ?.removePrefix("data:")?.trim()
+                    ?: error("Unexpected SSE format: $raw")
+            } else {
+                raw
+            }
+
+            return JSON.parseToJsonElement(jsonStr).jsonObject
+        }
+    }
+
     fun initialize(): JsonObject = rpc(
         "initialize",
         buildJsonObject {
@@ -65,6 +105,77 @@ class McpClient @Inject constructor() {
         },
         id = 1
     )
+
+    fun initializeNotion(): JsonObject = rpcNotion(
+        "initialize",
+        buildJsonObject {
+            put("protocolVersion", PROTO)
+            put("clientInfo", buildJsonObject { put("name", "myaiapp-android"); put("version", "0.1.0") })
+            put("capabilities", buildJsonObject { /* можно оставить пустым */ })
+        },
+        id = 1000
+    )
+
+    fun showToolsList(): JsonObject = rpcNotion("tools/list", id = 999)
+
+    fun notionToolsCall(name: String, arguments: JsonObject, id: Int = 1002): JsonObject =
+        rpcNotion(
+            "tools/call",
+            buildJsonObject {
+                put("name", name)
+                put("arguments", arguments)
+            },
+            id = id
+        )
+
+    private fun buildPrsMarkdownReport(title: String, briefs: List<PrBrief>): String {
+        val sb = StringBuilder()
+        sb.append("# ").append(title).append('\n').append('\n')
+        if (briefs.isEmpty()) {
+            sb.append("_No pull requests found._\n")
+        } else {
+            briefs.forEach { pr ->
+                sb.append("- PR #").append(pr.number).append(": ").append(pr.title).append('\n')
+            }
+        }
+        return sb.toString()
+    }
+
+    fun createNotionReportPage(
+        parentId: String,
+        title: String,
+        briefs: List<PrBrief>,
+    ): JsonObject {
+        val markdown = buildPrsMarkdownReport(title, briefs)
+        val args = buildJsonObject {
+            put("parent", buildJsonObject { put("page_id", parentId) })
+            put("properties", buildJsonObject {
+                put("title", buildJsonObject {
+                    put("title", buildJsonArray {
+                        add(buildJsonObject {
+                            put("text", buildJsonObject { put("content", title) })
+                        })
+                    })
+                })
+            })
+            // один параграф с markdown-текстом
+            put("children", buildJsonArray {
+                add(buildJsonObject {
+                    put("object", "block")
+                    put("type", "paragraph")
+                    put("paragraph", buildJsonObject {
+                        put("rich_text", buildJsonArray {
+                            add(buildJsonObject {
+                                put("type", "text")
+                                put("text", buildJsonObject { put("content", markdown) })
+                            })
+                        })
+                    })
+                })
+            })
+        }
+        return notionToolsCall("API-post-page", args)
+    }
 
     fun createOrUpdateFile(p: Plan): JsonObject {
         // Основной вызов MCP инструмента (см. tool create_or_update_file).
