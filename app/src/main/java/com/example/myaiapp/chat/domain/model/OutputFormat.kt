@@ -4,4 +4,5 @@ enum class OutputFormat {
     JSON,
     MCP,
     MCP_GIT_PR,
+    DOCKER_KOTLIN,
 }

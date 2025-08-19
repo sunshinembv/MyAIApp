@@ -37,6 +37,10 @@ class ChatViewModel(
             is ChatEvents.Ui.CallLlmToMCPGitHubPr -> {
                 handleEvent(event)
             }
+
+            is ChatEvents.Ui.CallLlmToDocker -> {
+                handleEvent(event)
+            }
         }
     }
 
