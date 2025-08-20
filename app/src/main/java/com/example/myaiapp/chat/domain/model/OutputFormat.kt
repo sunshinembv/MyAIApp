@@ -5,4 +5,5 @@ enum class OutputFormat {
     MCP,
     MCP_GIT_PR,
     DOCKER_KOTLIN,
+    DOCKER_KOTLIN_TEST,
 }
