@@ -3,7 +3,6 @@ package com.example.myaiapp.chat.presentation
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -27,14 +27,15 @@ import com.example.myaiapp.chat.presentation.preview_data.ChatStatePreviewParame
 import com.example.myaiapp.chat.presentation.state.ChatEvents
 import com.example.myaiapp.chat.presentation.state.ChatState
 import com.example.myaiapp.chat.presentation.ui_model.MessageUiModel
+import com.example.myaiapp.ui.components.DockerResultView
 import com.example.myaiapp.ui.components.LlmMessage
 import com.example.myaiapp.ui.components.OwnMessage
-import com.example.myaiapp.ui.components.PrItem
 import com.example.myaiapp.ui.components.SendMessageTextField
 import com.example.myaiapp.ui.components.basic.AppTopAppBar
 import com.example.myaiapp.ui.components.basic.AppTopAppBarIconItem
 import com.example.myaiapp.ui.theme.MyAIAppTheme
 import com.example.myaiapp.utils.ImmutableList
+import java.io.File
 
 @Composable
 fun ChatRoute(
@@ -59,6 +60,26 @@ fun ChatScreen(
     obtainEvent: (ChatEvents.Ui) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val keyFile = File(LocalContext.current.filesDir, "android_agent")
+    if (!keyFile.exists()) {
+        LocalContext.current.resources.openRawResource(R.raw.rsa).use { input ->
+            keyFile.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+        keyFile.setReadable(true, true)
+    }
+
+    val loginFile = File(LocalContext.current.filesDir, "u_name")
+    if (!loginFile.exists()) {
+        LocalContext.current.resources.openRawResource(R.raw.u_name).use { input ->
+            loginFile.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+        loginFile.setReadable(true, true)
+    }
+    val username = loginFile.readText(Charsets.UTF_8).trim()
     Scaffold(
         topBar = { ChatTopBar(onBack = popBackStack) },
         bottomBar = {
@@ -79,9 +100,17 @@ fun ChatScreen(
                             model = chatState.model,
                             rawHistory = chatState.rawHistory
                         )*/
-                        ChatEvents.Ui.CallLlmToMCPGitHubPr(
+                        /*ChatEvents.Ui.CallLlmToMCPGitHubPr(
                             history = chatState.history,
                             content = chatState.typedText.orEmpty(),
+                            model = chatState.model,
+                            rawHistory = chatState.rawHistory
+                        )*/
+                        ChatEvents.Ui.CallLlmToDocker(
+                            history = chatState.history,
+                            content = chatState.typedText.orEmpty(),
+                            login = username,
+                            key = keyFile.absolutePath,
                             model = chatState.model,
                             rawHistory = chatState.rawHistory
                         )
@@ -155,11 +184,17 @@ fun MessageList(
                                       modifier = Modifier.padding(top = dimensionResource(id = R.dimen.indent_16dp), end = dimensionResource(id = R.dimen.llm_message_indent)),
                                   )
                               }*/
-                            Column {
+                            /*Column {
                                 message.prsBrief?.briefs?.map { pr ->
                                     PrItem(pr = pr)
                                 }
-                            }
+                            }*/
+                            DockerResultView(
+                                jobId = message.runResult?.jobId.orEmpty(),
+                                exitStatus = message.runResult?.exitStatus ?: -1,
+                                output = message.runResult?.output.orEmpty(),
+                                modifier = Modifier.padding(top = dimensionResource(id = R.dimen.indent_16dp), end = dimensionResource(id = R.dimen.llm_message_indent)),
+                            )
                         }
                     }
                 }

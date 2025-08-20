@@ -4,6 +4,7 @@ import com.example.myaiapp.chat.data.model.Role
 import com.example.myaiapp.chat.domain.model.LlmState
 import com.example.myaiapp.chat.presentation.state.ChatCommand.CallLlm
 import com.example.myaiapp.chat.presentation.state.ChatCommand.CallLlmToMCP
+import com.example.myaiapp.chat.presentation.state.ChatCommand.CallLlmToMCPGitHubPr
 import com.example.myaiapp.chat.presentation.ui_model.MessageUiModel
 import com.example.myaiapp.chat.presentation.ui_model.PrBriefUiModel
 import com.example.myaiapp.core.Reducer
@@ -205,13 +206,72 @@ class ChatReducer @Inject constructor(
                         typedText = null
                     )
                 )
-                val command = ChatCommand.CallLlmToMCPGitHubPr(
+                val command = CallLlmToMCPGitHubPr(
                     event.history,
                     event.content,
                     event.model,
                     event.rawHistory
                 )
                 Result(command)
+            }
+
+            is ChatEvents.Ui.CallLlmToDocker -> {
+                val assistantPlaceholder = MessageUiModel(
+                    role = Role.ASSISTANT,
+                    content = LlmState.THINKS.state,
+                    isOwnMessage = false,
+                    pending = true,
+                )
+
+                val userMessage = MessageUiModel(
+                    role = Role.USER,
+                    content = event.content,
+                    isOwnMessage = true,
+                )
+
+                val newHistory = mutableListOf<MessageUiModel>()
+                state.history.list.onEach {
+                    newHistory.add(it)
+                }
+                newHistory.add(userMessage)
+                newHistory.add(assistantPlaceholder)
+
+                setState(
+                    state.copy(
+                        history = ImmutableList(newHistory),
+                        loading = true,
+                        error = null,
+                        isEmptyState = false,
+                        typedText = null
+                    )
+                )
+                val command = ChatCommand.CallLlmToDocker(
+                    event.history,
+                    event.content,
+                    event.login,
+                    event.key,
+                    event.model,
+                    event.rawHistory
+                )
+                Result(command)
+            }
+
+            is ChatEvents.Internal.DockerResponse -> {
+                val idx = state.history.list.indexOfLast { it.role == Role.ASSISTANT && it.pending }
+                val newHistory = if (idx >= 0) {
+                    state.history.list.toMutableList().apply {
+                        if (idx == state.history.list.lastIndex) {
+                            this[idx] = this[idx].copy(response = null, pending = false, content = null, verify = null, prsBrief = null, runResult = event.runResult)
+                        }
+                    }
+                } else state.history.list
+
+                val newState = state.copy(
+                    history = ImmutableList(newHistory),
+                    loading = false,
+                )
+                setState(newState)
+                Result(null)
             }
         }
     }

@@ -90,6 +90,9 @@ dependencies {
     //Kotlinx
     implementation(libs.kotlinx.serialization.json)
 
+    //SSH
+    implementation(libs.sshj)
+
     androidTestImplementation(libs.compose.ui.test.junit4)
     debugImplementation(libs.compose.uiTooling)
     debugImplementation(libs.compose.ui.test.manifest)

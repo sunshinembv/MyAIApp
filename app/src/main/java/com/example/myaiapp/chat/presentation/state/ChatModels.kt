@@ -4,6 +4,7 @@ import com.example.myaiapp.chat.data.model.OllamaChatMessage
 import com.example.myaiapp.chat.data.model.PrBrief
 import com.example.myaiapp.chat.data.model.Summary
 import com.example.myaiapp.chat.data.model.Verify
+import com.example.myaiapp.chat.data.ssh.SshDockerExecutor.RunResult
 import com.example.myaiapp.chat.domain.model.LlmModels
 import com.example.myaiapp.chat.domain.model.OutputFormat
 import com.example.myaiapp.chat.presentation.ui_model.MessageUiModel
@@ -46,6 +47,15 @@ sealed class ChatEvents : Event {
             val rawHistory: List<OllamaChatMessage>
         ) : Ui()
 
+        data class CallLlmToDocker(
+            val history: ImmutableList<MessageUiModel>,
+            val content: String,
+            val login: String,
+            val key: String,
+            val model: LlmModels,
+            val rawHistory: List<OllamaChatMessage>
+        ) : Ui()
+
         data class Typing(val text: String) : Ui()
     }
 
@@ -58,6 +68,8 @@ sealed class ChatEvents : Event {
         data class MCPResponse(val response: String): Internal()
 
         data class MCPResponseGitHubPr(val prBrief: List<PrBrief>): Internal()
+
+        data class DockerResponse(val runResult: RunResult): Internal()
 
         data class ErrorLoading(val error: Throwable) : Internal()
     }
@@ -81,6 +93,15 @@ sealed class ChatCommand : Command {
     data class CallLlmToMCPGitHubPr(
         val history: ImmutableList<MessageUiModel>,
         val content: String,
+        val model: LlmModels,
+        val rawHistory: List<OllamaChatMessage>
+    ) : ChatCommand()
+
+    data class CallLlmToDocker(
+        val history: ImmutableList<MessageUiModel>,
+        val content: String,
+        val login: String,
+        val key: String,
         val model: LlmModels,
         val rawHistory: List<OllamaChatMessage>
     ) : ChatCommand()
