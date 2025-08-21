@@ -54,7 +54,12 @@ class ChatActor @Inject constructor(
             }
 
             is ChatCommand.CallLlmToDocker -> {
-                val result = dockerRepository.callLlmToDocker(
+                /*val result = dockerRepository.callLlmToDocker(
+                    command.content,
+                    command.login,
+                    command.key,
+                )*/
+                val result = dockerRepository.callLlmToDockerTest(
                     command.content,
                     command.login,
                     command.key,
