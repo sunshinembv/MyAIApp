@@ -66,6 +66,7 @@ fun ChatScreen(
                     obtainEvent(
                         ChatEvents.Ui.CallLlm(
                             content = chatState.typedText.orEmpty(),
+                            model = chatState.model,
                             responseType = chatState.responseType
                         )
                     )

@@ -44,17 +44,29 @@ class ChatReducer @Inject constructor(
 
                 val command = when (event.responseType) {
                     ResponseType.JSON -> {
-                        CallLlm(event.content)
+                        CallLlm(
+                            content = event.content,
+                            model = event.model
+                        )
                     }
                     ResponseType.MCP -> {
-                        CallLlmToMCP(event.content)
+                        CallLlmToMCP(
+                            content = event.content,
+                            model = event.model
+                        )
                     }
                     ResponseType.MCP_GIT_PR -> {
-                        CallLlmToMCPGitHubPr(event.content)
+                        CallLlmToMCPGitHubPr(
+                            content = event.content,
+                            model = event.model
+                        )
                     }
                     ResponseType.DOCKER_KOTLIN,
                     ResponseType.DOCKER_KOTLIN_TEST -> {
-                        CallLlmToDocker(event.content)
+                        CallLlmToDocker(
+                            content = event.content,
+                            model = event.model
+                        )
                     }
                 }
                 Result(command)

@@ -10,7 +10,7 @@ import com.example.myaiapp.chat.data.model.Role
 import com.example.myaiapp.chat.domain.PromptBuilder
 import com.example.myaiapp.chat.domain.model.LlmModels
 import com.example.myaiapp.chat.domain.model.ResponseType
-import com.example.myaiapp.network.AIApi
+import com.example.myaiapp.network.MistralApi
 import com.example.myaiapp.network.McpClient
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.Dispatchers
@@ -25,17 +25,17 @@ import kotlinx.serialization.json.put
 import javax.inject.Inject
 
 class MCPRepository @Inject constructor(
-    private val api: AIApi,
+    private val api: MistralApi,
 ) {
 
     private val history: MutableList<OllamaChatMessage> = mutableListOf(
         OllamaChatMessage(Role.SYSTEM, PromptBuilder.systemPrompt(ResponseType.MCP_GIT_PR))
     )
 
-    suspend fun callLlmToMCP(content: String): String {
+    suspend fun callLlmToMCP(content: String, model: LlmModels): String {
         history += OllamaChatMessage(Role.USER, content)
         val request = OllamaChatRequest(
-            model = LlmModels.MISTRAL.modelName,
+            model = model.modelName,
             messages = history,
             format = "json",
             options = OllamaOptions(
@@ -54,10 +54,10 @@ class MCPRepository @Inject constructor(
         return mcpResult
     }
 
-    suspend fun callLlmToMCPGitHubPr(content: String): List<PrBrief> {
+    suspend fun callLlmToMCPGitHubPr(content: String, model: LlmModels): List<PrBrief> {
         history += OllamaChatMessage(Role.USER, content)
         val request = OllamaChatRequest(
-            model = LlmModels.MISTRAL.modelName,
+            model = model.modelName,
             messages = history,
             format = "json",
             options = OllamaOptions(
@@ -110,12 +110,12 @@ class MCPRepository @Inject constructor(
         response
     }
 
-    suspend fun callLlmToMCPPrReport(prompt: String): JsonObject {
+    suspend fun callLlmToMCPPrReport(prompt: String, model: LlmModels): JsonObject {
         // добавляем сообщение пользователя в историю (как в других методах)
         history += OllamaChatMessage(Role.USER, prompt)
 
         val request = OllamaChatRequest(
-            model = LlmModels.MISTRAL.modelName,
+            model = model.modelName,
             messages = history,
             format = "json",
             options = OllamaOptions(

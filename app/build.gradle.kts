@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,6 +8,16 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     id("org.jetbrains.kotlin.kapt")
 }
+
+android.buildFeatures.buildConfig = true
+
+val localProps = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+
+fun String.asBuildConfigString(): String =
+    "\"" + this.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
 android {
     namespace = "com.example.myaiapp"
@@ -22,12 +34,22 @@ android {
     }
 
     buildTypes {
+        debug {
+            val fromLocal = localProps.getProperty("OPEN_ROUTER_API_KEY") ?: ""
+            val fromGradle = providers.gradleProperty("OPEN_ROUTER_API_KEY").orNull
+            val fromEnv = providers.environmentVariable("OPEN_ROUTER_API_KEY").orNull
+            //noinspection WrongGradleMethod
+            val key = sequenceOf(fromGradle, fromLocal, fromEnv).firstOrNull { !it.isNullOrBlank() } ?: ""
+            buildConfigField("String", "OPEN_ROUTER_API_KEY", key.asBuildConfigString())
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // На всякий случай в релиз не кладём ничего
+            buildConfigField("String", "OPEN_ROUTER_API_KEY", "\"\"")
         }
     }
     compileOptions {

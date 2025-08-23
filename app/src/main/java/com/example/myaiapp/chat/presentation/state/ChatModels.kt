@@ -27,6 +27,7 @@ sealed class ChatEvents : Event {
     sealed class Ui : ChatEvents() {
         data class CallLlm(
             val content: String,
+            val model: LlmModels,
             val responseType: ResponseType,
         ) : Ui()
 
@@ -55,17 +56,21 @@ sealed class ChatEvents : Event {
 sealed class ChatCommand : Command {
     data class CallLlm(
         val content: String,
+        val model: LlmModels,
     ) : ChatCommand()
 
     data class CallLlmToMCP(
         val content: String,
+        val model: LlmModels,
     ) : ChatCommand()
 
     data class CallLlmToMCPGitHubPr(
         val content: String,
+        val model: LlmModels,
     ) : ChatCommand()
 
     data class CallLlmToDocker(
         val content: String,
+        val model: LlmModels,
     ) : ChatCommand()
 }

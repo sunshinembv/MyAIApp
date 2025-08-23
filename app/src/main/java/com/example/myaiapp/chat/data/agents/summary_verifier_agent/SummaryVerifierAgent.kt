@@ -7,14 +7,18 @@ import com.example.myaiapp.chat.data.model.OllamaChatRequest
 import com.example.myaiapp.chat.data.model.OllamaOptions
 import com.example.myaiapp.chat.data.model.Role
 import com.example.myaiapp.chat.data.model.Verify
+import com.example.myaiapp.chat.data.toOllama
+import com.example.myaiapp.chat.data.toOpenRouter
 import com.example.myaiapp.chat.domain.model.LlmModels
-import com.example.myaiapp.network.AIApi
+import com.example.myaiapp.network.MistralApi
+import com.example.myaiapp.network.OpenRouterApi
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import javax.inject.Inject
 
 class SummaryVerifierAgent @Inject constructor(
-    private val api: AIApi,
+    private val mistralApi: MistralApi,
+    private val openRouterApi: OpenRouterApi,
     private val llmContentParser: LlmContentParser,
 ) {
 
@@ -68,28 +72,35 @@ class SummaryVerifierAgent @Inject constructor(
         stop = listOf("<<<END>>>")
     )
 
-    suspend fun verify(summaryJson: String): Verification {
+    suspend fun verify(summaryJson: String, model: LlmModels): Verification {
         val history = listOf(
             OllamaChatMessage(Role.SYSTEM, systemPrompt),
             // Передаём SUMMARY как USER-контент (ровно как получил от InterviewAgent)
             OllamaChatMessage(Role.USER, summaryJson)
         )
 
-        val resp = api.chatOnce(
-            OllamaChatRequest(
-                model = LlmModels.MISTRAL.modelName,
-                messages = history,
-                options = options
-            )
+        val request = OllamaChatRequest(
+            model = model.modelName,
+            messages = history,
+            options = options
         )
 
-        val normalized = llmContentParser.normalizeAssistantContent(resp.message.content)
+        val response = when (model) {
+            LlmModels.MISTRAL -> {
+                mistralApi.chatOnce(request)
+            }
+            LlmModels.DEEPSEEK_FREE -> {
+                openRouterApi.chat(request.toOpenRouter()).toOllama()
+            }
+        }
+
+        val normalized = llmContentParser.normalizeAssistantContent(response.message.content)
             ?: error("Summary Verifier Agent: no JSON found")
         val json = normalized.removeSuffix("<<<END>>>")
 
         val dto = verifyAdapter.fromJson(json)
             ?: error("Agent2: invalid verify JSON")
 
-        return Verification(dto = dto, rawAssistant = resp.message.copy(content = normalized))
+        return Verification(dto = dto, rawAssistant = response.message.copy(content = normalized))
     }
 }

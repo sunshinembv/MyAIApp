@@ -6,17 +6,21 @@ import com.example.myaiapp.chat.data.model.OllamaOptions
 import com.example.myaiapp.chat.data.model.Role
 import com.example.myaiapp.chat.data.ssh.SshDockerExecutor
 import com.example.myaiapp.chat.data.ssh.SshDockerExecutor.RunResult
+import com.example.myaiapp.chat.data.toOllama
+import com.example.myaiapp.chat.data.toOpenRouter
 import com.example.myaiapp.chat.domain.PromptBuilder
 import com.example.myaiapp.chat.domain.model.LlmModels
 import com.example.myaiapp.chat.domain.model.ResponseType
 import com.example.myaiapp.data_provider.DataProvider
-import com.example.myaiapp.network.AIApi
+import com.example.myaiapp.network.MistralApi
+import com.example.myaiapp.network.OpenRouterApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class DockerRepository @Inject constructor(
-    private val api: AIApi,
+    private val mistralApi: MistralApi,
+    private val openRouterApi: OpenRouterApi,
     private val dataProvider: DataProvider,
 ) {
 
@@ -24,11 +28,11 @@ class DockerRepository @Inject constructor(
         OllamaChatMessage(Role.SYSTEM, PromptBuilder.systemPrompt(ResponseType.DOCKER_KOTLIN_TEST))
     )
 
-    suspend fun callLlmToDocker(content: String): RunResult {
+    suspend fun callLlmToDocker(content: String, model: LlmModels): RunResult {
         return withContext(Dispatchers.IO) {
             history += OllamaChatMessage(Role.USER, content)
             val request = OllamaChatRequest(
-                model = LlmModels.MISTRAL.modelName,
+                model = model.modelName,
                 messages = history,
                 options = OllamaOptions(
                     temperature = 0.1,
@@ -40,7 +44,7 @@ class DockerRepository @Inject constructor(
                 keepAlive = "5m"
             )
 
-            val response = api.chatOnce(request)
+            val response = mistralApi.chatOnce(request)
             val formatedResponse = response.message.content.replace("`", "")
             history += response.message
 
@@ -50,11 +54,11 @@ class DockerRepository @Inject constructor(
         }
     }
 
-    suspend fun callLlmToDockerTest(content: String): RunResult {
+    suspend fun callLlmToDockerTest(content: String, model: LlmModels): RunResult {
         return withContext(Dispatchers.IO) {
             history += OllamaChatMessage(Role.USER, content)
             val request = OllamaChatRequest(
-                model = LlmModels.MISTRAL.modelName,
+                model = model.modelName,
                 messages = history,
                 options = OllamaOptions(
                     temperature = 0.1,
@@ -66,7 +70,14 @@ class DockerRepository @Inject constructor(
                 keepAlive = "5m"
             )
 
-            val response = api.chatOnce(request)
+            val response = when (model) {
+                LlmModels.MISTRAL -> {
+                    mistralApi.chatOnce(request)
+                }
+                LlmModels.DEEPSEEK_FREE -> {
+                    openRouterApi.chat(request.toOpenRouter()).toOllama()
+                }
+            }
             val testsFromLlm = sanitizeTestsCode(response.message.content).trim()
             history += response.message
 
