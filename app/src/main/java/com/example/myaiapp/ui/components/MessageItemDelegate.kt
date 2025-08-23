@@ -9,14 +9,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import com.example.myaiapp.R
+import com.example.myaiapp.chat.presentation.ui_model.item.MessageItem
 import com.example.myaiapp.ui.components.basic.AppMessage
 import com.example.myaiapp.ui.theme.MyAIAppTheme
 
 @Composable
-fun LlmMessage(
-    agentName: String,
-    text: String,
-    pending: Boolean,
+fun MessageItemDelegate(
+    item: MessageItem,
     modifier: Modifier = Modifier,
     color: Color = MyAIAppTheme.colors.messageBackgroundColor
 ) {
@@ -25,10 +24,8 @@ fun LlmMessage(
     ) {
         Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.indent_4dp)))
         AppMessage(
-            agentName = agentName,
-            text = text,
+            text = item.text,
             color = color,
-            pending = pending,
             modifier = modifier
         )
     }

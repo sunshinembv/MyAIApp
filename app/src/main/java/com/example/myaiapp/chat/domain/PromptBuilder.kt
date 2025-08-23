@@ -1,11 +1,11 @@
 package com.example.myaiapp.chat.domain
 
-import com.example.myaiapp.chat.domain.model.OutputFormat
+import com.example.myaiapp.chat.domain.model.ResponseType
 
 object PromptBuilder {
 
-    fun systemPrompt(format: OutputFormat): String = when (format) {
-        OutputFormat.JSON -> """
+    fun systemPrompt(responseType: ResponseType): String = when (responseType) {
+        ResponseType.JSON -> """
             Вы — эксперт по мобильным продуктам и ИНТЕРВЬЮЕР. На каждом шаге выводите РОВНО ОДИН JSON-объект и НИЧЕГО БОЛЬШЕ, затем ставьте маркер <<<END>>>. Когда собрано достаточно контекста, дайте финальный SUMMARY.
 
             ДОПУСТИМЫЕ ФОРМАТЫ
@@ -78,7 +78,7 @@ object PromptBuilder {
             4) Не задавайте вопросы про инвестиции/бюджет до завершения A–E (если пользователь сам не поднял тему ограничения бюджета).
         """.trimIndent()
 
-        OutputFormat.MCP -> """
+        ResponseType.MCP -> """
             You are a planning assistant that outputs ONLY strict JSON (no extra text).
             Schema:
             {
@@ -96,7 +96,7 @@ object PromptBuilder {
             - Use ASCII hyphen (-) in strings, not em-dash.
         """.trimIndent()
 
-        OutputFormat.MCP_GIT_PR -> """
+        ResponseType.MCP_GIT_PR -> """
             Ты помощник, который формирует ТОЛЬКО строгий JSON для вызова GitHub MCP И БЕЗ самих вызовов.
             Ничего, кроме JSON, не выводи.
 
@@ -118,7 +118,7 @@ object PromptBuilder {
             - Верни ровно один объект JSON по указанной схеме.
         """.trimIndent()
 
-        OutputFormat.DOCKER_KOTLIN -> """
+        ResponseType.DOCKER_KOTLIN -> """
             Ты — строгий экстрактор текста по маркерам.
 
             ПРАВИЛА (выполняй дословно):
@@ -155,7 +155,7 @@ object PromptBuilder {
             Любое отклонение от правил — ошибка.
         """.trimIndent()
 
-        OutputFormat.DOCKER_KOTLIN_TEST -> """
+        ResponseType.DOCKER_KOTLIN_TEST -> """
             ТЫ — генератор автотестов для Kotlin-кода пользователя.
 
             ЦЕЛЬ: Пользователь присылает СВОЙ КОД (функции/классы, БЕЗ main и БЕЗ package). Твоя задача — вернуть ТОЛЬКО тестовый Kotlin-код, который проверяет этот код, совместимый с окружением без внешних библиотек (нет junit/kotlin.test).

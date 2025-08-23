@@ -1,6 +1,5 @@
 package com.example.myaiapp.chat.presentation
 
-import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,33 +8,30 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myaiapp.R
-import com.example.myaiapp.chat.data.model.Summary
-import com.example.myaiapp.chat.presentation.preview_data.ChatStatePreviewParameterProvider
+import com.example.myaiapp.chat.domain.model.LlmState
 import com.example.myaiapp.chat.presentation.state.ChatEvents
 import com.example.myaiapp.chat.presentation.state.ChatState
-import com.example.myaiapp.chat.presentation.ui_model.MessageUiModel
-import com.example.myaiapp.ui.components.DockerResultView
-import com.example.myaiapp.ui.components.LlmMessage
-import com.example.myaiapp.ui.components.OwnMessage
+import com.example.myaiapp.chat.presentation.ui_model.item.OwnMessageItem
+import com.example.myaiapp.chat.presentation.ui_model.item.PendingItem
+import com.example.myaiapp.chat.presentation.ui_model.item.UiItem
+import com.example.myaiapp.ui.UiItemDelegate
 import com.example.myaiapp.ui.components.SendMessageTextField
 import com.example.myaiapp.ui.components.basic.AppTopAppBar
 import com.example.myaiapp.ui.components.basic.AppTopAppBarIconItem
 import com.example.myaiapp.ui.theme.MyAIAppTheme
 import com.example.myaiapp.utils.ImmutableList
-import java.io.File
 
 @Composable
 fun ChatRoute(
@@ -60,26 +56,6 @@ fun ChatScreen(
     obtainEvent: (ChatEvents.Ui) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val keyFile = File(LocalContext.current.filesDir, "android_agent")
-    if (!keyFile.exists()) {
-        LocalContext.current.resources.openRawResource(R.raw.rsa).use { input ->
-            keyFile.outputStream().use { output ->
-                input.copyTo(output)
-            }
-        }
-        keyFile.setReadable(true, true)
-    }
-
-    val loginFile = File(LocalContext.current.filesDir, "u_name")
-    if (!loginFile.exists()) {
-        LocalContext.current.resources.openRawResource(R.raw.u_name).use { input ->
-            loginFile.outputStream().use { output ->
-                input.copyTo(output)
-            }
-        }
-        loginFile.setReadable(true, true)
-    }
-    val username = loginFile.readText(Charsets.UTF_8).trim()
     Scaffold(
         topBar = { ChatTopBar(onBack = popBackStack) },
         bottomBar = {
@@ -88,31 +64,9 @@ fun ChatScreen(
                 onTextChange = { text -> obtainEvent(ChatEvents.Ui.Typing(text)) },
                 onSend = {
                     obtainEvent(
-                        /*ChatEvents.Ui.CallLlm(
-                            history = chatState.history,
+                        ChatEvents.Ui.CallLlm(
                             content = chatState.typedText.orEmpty(),
-                            model = chatState.model,
-                            rawHistory = chatState.rawHistory
-                        )*/
-                        /*ChatEvents.Ui.CallLlmToMCP(
-                            history = chatState.history,
-                            content = chatState.typedText.orEmpty(),
-                            model = chatState.model,
-                            rawHistory = chatState.rawHistory
-                        )*/
-                        /*ChatEvents.Ui.CallLlmToMCPGitHubPr(
-                            history = chatState.history,
-                            content = chatState.typedText.orEmpty(),
-                            model = chatState.model,
-                            rawHistory = chatState.rawHistory
-                        )*/
-                        ChatEvents.Ui.CallLlmToDocker(
-                            history = chatState.history,
-                            content = chatState.typedText.orEmpty(),
-                            login = username,
-                            key = keyFile.absolutePath,
-                            model = chatState.model,
-                            rawHistory = chatState.rawHistory
+                            responseType = chatState.responseType
                         )
                     )
                 }
@@ -129,10 +83,11 @@ fun ChatScreen(
 
 @Composable
 fun MessageList(
-    messages: ImmutableList<MessageUiModel>,
+    items: ImmutableList<UiItem>,
+    isPending: Boolean,
     modifier: Modifier = Modifier
 ) {
-    if (messages.list.isEmpty()) {
+    if (items.list.isEmpty()) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -144,59 +99,26 @@ fun MessageList(
             )
         }
     } else {
+        val listState = rememberLazyListState()
+        val finalItems = remember(items, isPending) {
+            if (isPending) listOf(PendingItem(LlmState.THINKS.state)) + items.list else items.list
+        }
         LazyColumn(
             modifier = modifier.fillMaxWidth(),
+            state = listState,
             verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.indent_16dp)),
             contentPadding = PaddingValues(dimensionResource(id = R.dimen.indent_16dp)),
             reverseLayout = true
         ) {
-            items(messages.list.size) { index ->
-                val message = messages.list[index]
+            items(finalItems.size) { index ->
+                val item = finalItems[index]
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = if (message.isOwnMessage)
+                    horizontalArrangement = if (item is OwnMessageItem)
                         Arrangement.End else
                         Arrangement.Start
                 ) {
-                    if (message.isOwnMessage) {
-                        OwnMessage(
-                            text = message.content.orEmpty(),
-                            modifier = Modifier.padding(start = dimensionResource(id = R.dimen.own_message_indent)),
-                        )
-                    } else {
-                        if (message.content != null) {
-                            LlmMessage(
-                                agentName = Summary.agentName,
-                                text = message.content,
-                                pending = message.pending,
-                            )
-                        } else {
-                              /*Column {
-                                  LlmSummary(
-                                      agentName = Summary.agentName,
-                                      response = message.response ?: Summary.EMPTY,
-                                      pending = message.pending,
-                                      modifier = Modifier.padding(end = dimensionResource(id = R.dimen.llm_message_indent)),
-                                  )
-                                  VerifyView(
-                                      agentName = Verify.agentName,
-                                      verify = message.verify ?: Verify.EMPTY,
-                                      modifier = Modifier.padding(top = dimensionResource(id = R.dimen.indent_16dp), end = dimensionResource(id = R.dimen.llm_message_indent)),
-                                  )
-                              }*/
-                            /*Column {
-                                message.prsBrief?.briefs?.map { pr ->
-                                    PrItem(pr = pr)
-                                }
-                            }*/
-                            DockerResultView(
-                                jobId = message.runResult?.jobId.orEmpty(),
-                                exitStatus = message.runResult?.exitStatus ?: -1,
-                                output = message.runResult?.output.orEmpty(),
-                                modifier = Modifier.padding(top = dimensionResource(id = R.dimen.indent_16dp), end = dimensionResource(id = R.dimen.llm_message_indent)),
-                            )
-                        }
-                    }
+                    UiItemDelegate(item)
                 }
             }
         }
@@ -235,7 +157,8 @@ private fun ChatContent(
 ) {
     if (chatState.error == null) {
         MessageList(
-            messages = ImmutableList(chatState.history.list.reversed()),
+            items = ImmutableList(chatState.history.list.reversed()),
+            isPending = chatState.isPending,
             modifier = modifier
         )
     } else {
@@ -245,20 +168,5 @@ private fun ChatContent(
         ) {
             Text(chatState.error)
         }
-    }
-}
-
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun ChatScreenPreview(
-    @PreviewParameter(ChatStatePreviewParameterProvider::class)
-    chatState: ChatState,
-) {
-    MyAIAppTheme {
-        ChatScreen(
-            chatState = chatState,
-            popBackStack = {},
-            obtainEvent = {}
-        )
     }
 }

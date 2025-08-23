@@ -6,7 +6,6 @@ import com.example.myaiapp.chat.domain.agent_orchestrator.TwoAgentOrchestrator
 import com.example.myaiapp.chat.domain.agent_orchestrator.model.OrchestratorResult
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.MCPResponse
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.MCPResponseGitHubPr
-import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.MessageLoaded
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.SummeryAndReviewLoaded
 import com.example.myaiapp.core.Actor
 import javax.inject.Inject
@@ -27,7 +26,7 @@ class ChatActor @Inject constructor(
 
                 when (result) {
                     is OrchestratorResult.Ask -> {
-                        onEvent(MessageLoaded(result.question))
+                        onEvent(ChatEvents.Internal.AskLoaded(result))
                     }
                     is OrchestratorResult.SummaryAndReview -> {
                         onEvent(SummeryAndReviewLoaded(result.summary, result.verify))
@@ -48,7 +47,7 @@ class ChatActor @Inject constructor(
                     command.content
                 )
 
-                mcpRepository.callLlmToMCPPrReport(command.content)
+                //mcpRepository.callLlmToMCPPrReport(command.content)
 
                 onEvent(MCPResponseGitHubPr(result))
             }
@@ -61,13 +60,10 @@ class ChatActor @Inject constructor(
                 )*/
                 val result = dockerRepository.callLlmToDockerTest(
                     command.content,
-                    command.login,
-                    command.key,
                 )
 
                 onEvent(ChatEvents.Internal.DockerResponse(result))
             }
-
         }
     }
 }

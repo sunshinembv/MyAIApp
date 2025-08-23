@@ -1,6 +1,6 @@
 package com.example.myaiapp.chat.domain.model
 
-enum class OutputFormat {
+enum class ResponseType {
     JSON,
     MCP,
     MCP_GIT_PR,

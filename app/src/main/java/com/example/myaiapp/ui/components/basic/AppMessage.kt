@@ -3,8 +3,6 @@ package com.example.myaiapp.ui.components.basic
 import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -23,7 +21,6 @@ fun AppMessage(
     agentName: String? = null,
     text: String,
     color: Color,
-    pending: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -34,17 +31,6 @@ fun AppMessage(
             modifier = Modifier.padding(dimensionResource(id = R.dimen.indent_10dp))
         ) {
             val (agentId, textId, progressId) = createRefs()
-            if (pending) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .size(dimensionResource(id = R.dimen.indent_16dp))
-                        .constrainAs(progressId) {
-                            start.linkTo(parent.start)
-                        },
-                    color = MyAIAppTheme.colors.primaryTextColor,
-                    strokeWidth = dimensionResource(id = R.dimen.indent_2dp)
-                )
-            }
             if (agentName != null) {
                 Text(
                     text = agentName,
