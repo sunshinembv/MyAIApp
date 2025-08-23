@@ -1,6 +1,7 @@
 package com.example.myaiapp.chat.di
 
 import com.example.myaiapp.chat.presentation.ChatViewModel
+import com.example.myaiapp.chat.presentation.mapper.ChatUiModelMapper
 import com.example.myaiapp.chat.presentation.state.ChatActor
 import com.example.myaiapp.chat.presentation.state.ChatReducer
 import com.example.myaiapp.chat.presentation.state.ChatState
@@ -22,6 +23,6 @@ class ChatModule {
     @Provides
     @ChatScope
     fun provideChatReducer(): ChatReducer {
-        return ChatReducer(ChatState())
+        return ChatReducer(state = ChatState(), mapper = ChatUiModelMapper())
     }
 }

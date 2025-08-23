@@ -8,7 +8,8 @@ import com.example.myaiapp.chat.data.ssh.SshDockerExecutor
 import com.example.myaiapp.chat.data.ssh.SshDockerExecutor.RunResult
 import com.example.myaiapp.chat.domain.PromptBuilder
 import com.example.myaiapp.chat.domain.model.LlmModels
-import com.example.myaiapp.chat.domain.model.OutputFormat
+import com.example.myaiapp.chat.domain.model.ResponseType
+import com.example.myaiapp.data_provider.DataProvider
 import com.example.myaiapp.network.AIApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -16,13 +17,14 @@ import javax.inject.Inject
 
 class DockerRepository @Inject constructor(
     private val api: AIApi,
+    private val dataProvider: DataProvider,
 ) {
 
     private val history: MutableList<OllamaChatMessage> = mutableListOf(
-        OllamaChatMessage(Role.SYSTEM, PromptBuilder.systemPrompt(OutputFormat.DOCKER_KOTLIN_TEST))
+        OllamaChatMessage(Role.SYSTEM, PromptBuilder.systemPrompt(ResponseType.DOCKER_KOTLIN_TEST))
     )
 
-    suspend fun callLlmToDocker(content: String, login: String, key: String): RunResult {
+    suspend fun callLlmToDocker(content: String): RunResult {
         return withContext(Dispatchers.IO) {
             history += OllamaChatMessage(Role.USER, content)
             val request = OllamaChatRequest(
@@ -42,13 +44,13 @@ class DockerRepository @Inject constructor(
             val formatedResponse = response.message.content.replace("`", "")
             history += response.message
 
-            val exec = SshDockerExecutor(username = login, privateKeyPath = key)
+            val exec = SshDockerExecutor(username = dataProvider.getUserName(), privateKeyPath = dataProvider.getKeyAbsolutePath())
             val res = exec.runKotlin(formatedResponse)
             res
         }
     }
 
-    suspend fun callLlmToDockerTest(content: String, login: String, key: String): RunResult {
+    suspend fun callLlmToDockerTest(content: String): RunResult {
         return withContext(Dispatchers.IO) {
             history += OllamaChatMessage(Role.USER, content)
             val request = OllamaChatRequest(
@@ -109,7 +111,7 @@ private fun assertFalse(name: String, cond: Boolean) = __assertFalse(name, cond)
                 }
             }
 
-            val exec = SshDockerExecutor(username = login, privateKeyPath = key)
+            val exec = SshDockerExecutor(username = dataProvider.getUserName(), privateKeyPath = dataProvider.getKeyAbsolutePath())
             val res = exec.runKotlin(combined)
             res
         }

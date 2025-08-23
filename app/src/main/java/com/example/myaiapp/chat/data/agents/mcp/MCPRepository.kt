@@ -9,7 +9,7 @@ import com.example.myaiapp.chat.data.model.PrBrief
 import com.example.myaiapp.chat.data.model.Role
 import com.example.myaiapp.chat.domain.PromptBuilder
 import com.example.myaiapp.chat.domain.model.LlmModels
-import com.example.myaiapp.chat.domain.model.OutputFormat
+import com.example.myaiapp.chat.domain.model.ResponseType
 import com.example.myaiapp.network.AIApi
 import com.example.myaiapp.network.McpClient
 import com.squareup.moshi.Moshi
@@ -29,7 +29,7 @@ class MCPRepository @Inject constructor(
 ) {
 
     private val history: MutableList<OllamaChatMessage> = mutableListOf(
-        OllamaChatMessage(Role.SYSTEM, PromptBuilder.systemPrompt(OutputFormat.MCP_GIT_PR))
+        OllamaChatMessage(Role.SYSTEM, PromptBuilder.systemPrompt(ResponseType.MCP_GIT_PR))
     )
 
     suspend fun callLlmToMCP(content: String): String {

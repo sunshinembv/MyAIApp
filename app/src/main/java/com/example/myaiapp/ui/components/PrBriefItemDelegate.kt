@@ -18,14 +18,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.myaiapp.chat.data.model.PrBrief
+import com.example.myaiapp.chat.presentation.ui_model.item.PrBriefItem
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun PrItem(
-    pr: PrBrief,
+fun PrBriefItemDelegate(
+    item: PrBriefItem,
     modifier: Modifier = Modifier
 ) {
     val containerShape = RoundedCornerShape(14.dp)
@@ -37,7 +37,7 @@ fun PrItem(
             .padding(14.dp)
     ) {
         BasicText(
-            text = pr.title,
+            text = item.title,
             style = androidx.compose.ui.text.TextStyle(
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
@@ -51,7 +51,7 @@ fun PrItem(
         Spacer(Modifier.height(6.dp))
 
         BasicText(
-            text = "Author: ${pr.author}",
+            text = "Author: ${item.author}",
             style = androidx.compose.ui.text.TextStyle(
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
@@ -61,23 +61,23 @@ fun PrItem(
 
         Spacer(Modifier.height(10.dp))
 
-        LabeledNumber(label = "State", value = pr.state.asArg())
+        LabeledNumber(label = "State", value = item.state.asArg())
 
         Spacer(Modifier.height(4.dp))
 
-        LabeledNumber(label = "Comments", value = pr.comments.toString())
+        LabeledNumber(label = "Comments", value = item.comments.toString())
 
         Spacer(Modifier.height(4.dp))
 
-        LabeledNumber(label = "Additions", value = pr.additions.toString(), valueColor = Color(0xFF2E7D32))
+        LabeledNumber(label = "Additions", value = item.additions.toString(), valueColor = Color(0xFF2E7D32))
 
         Spacer(Modifier.height(4.dp))
 
-        LabeledNumber(label = "Deletions", value = pr.deletions.toString(), valueColor = Color(0xFFC62828))
+        LabeledNumber(label = "Deletions", value = item.deletions.toString(), valueColor = Color(0xFFC62828))
 
         Spacer(Modifier.height(10.dp))
 
-        val timeText = formatTime(pr.createdAt)
+        val timeText = formatTime(item.createdAt)
         LabeledNumber(label = "Time", value = timeText, valueColor = Color(0xFF7A7A7A))
     }
 }

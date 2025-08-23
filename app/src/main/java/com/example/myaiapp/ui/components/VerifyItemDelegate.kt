@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,19 +24,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.myaiapp.R
-import com.example.myaiapp.chat.data.model.Verify
+import com.example.myaiapp.chat.presentation.ui_model.item.VerifyItem
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun VerifyView(
-    agentName: String,
-    verify: Verify,
+fun VerifyItemDelegate(
+    item: VerifyItem,
     modifier: Modifier = Modifier,
     corner: Dp = 14.dp
 ) {
-    val statusColor = if (verify.ok) Color(0xFF16A34A) else Color(0xFFDC2626) // зелёный/красный
+    val statusColor = if (item.ok) Color(0xFF16A34A) else Color(0xFFDC2626) // зелёный/красный
     val faint = Color(0xFF9CA3AF) // серый для подписей
     val chipErrBg = Color(0xFFFFE4E6)
     val chipErrFg = Color(0xFFB91C1C)
@@ -58,11 +55,6 @@ fun VerifyView(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Text(
-                text = agentName,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold
-            )
             Box(
                 modifier = Modifier
                     .size(12.dp)
@@ -70,23 +62,23 @@ fun VerifyView(
                     .background(statusColor)
             )
             BasicText(
-                text = if (verify.ok) "Статус: PASSED" else "Статус: FAILED",
+                text = if (item.ok) "Статус: PASSED" else "Статус: FAILED",
                 style = androidx.compose.ui.text.TextStyle(fontWeight = FontWeight.SemiBold)
             )
             Spacer(Modifier.weight(1f))
-            TinyLabel(text = "mode=${verify.mode}", color = faint)
+            TinyLabel(text = "mode=${item.mode}", color = faint)
         }
 
         // Score
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            val pct = (verify.score.coerceIn(0.0, 1.0) * 100).toInt()
+            val pct = (item.score.coerceIn(0.0, 1.0) * 100).toInt()
             Row(verticalAlignment = Alignment.CenterVertically) {
                 BasicText("Оценка качества: $pct%")
                 Spacer(Modifier.width(8.dp))
-                TinyLabel(text = if (verify.ok) "базовые проверки пройдены" else "есть проблемы", color = faint)
+                TinyLabel(text = if (item.ok) "базовые проверки пройдены" else "есть проблемы", color = faint)
             }
             ProgressBarSimple(
-                progress = verify.score.coerceIn(0.0, 1.0).toFloat(),
+                progress = item.score.coerceIn(0.0, 1.0).toFloat(),
                 height = 8.dp,
                 track = Color(0xFFE5E7EB),
                 bar = statusColor
@@ -95,7 +87,7 @@ fun VerifyView(
 
         // Missing required
         SectionTitle("Обязательные поля (A–E)")
-        if (verify.missingRequired.isNullOrEmpty()) {
+        if (item.missingRequired.isNullOrEmpty()) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TickDot(Color(0xFF16A34A))
                 BasicText("Все обязательные поля на месте", style = androidx.compose.ui.text.TextStyle(color = faint))
@@ -105,7 +97,7 @@ fun VerifyView(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                verify.missingRequired.forEach { tag ->
+                item.missingRequired.forEach { tag ->
                     Chip(text = tag, bg = chipErrBg, fg = chipErrFg)
                 }
             }
@@ -113,7 +105,7 @@ fun VerifyView(
 
         // Missing optional
         SectionTitle("Дополнительные пункты (из 12)")
-        if (verify.missingOptional.isNullOrEmpty()) {
+        if (item.missingOptional.isNullOrEmpty()) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TickDot(Color(0xFF16A34A))
                 BasicText("Замечаний нет", style = androidx.compose.ui.text.TextStyle(color = faint))
@@ -123,7 +115,7 @@ fun VerifyView(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                verify.missingOptional.forEach { tag ->
+                item.missingOptional.forEach { tag ->
                     Chip(text = tag, bg = chipWarnBg, fg = chipWarnFg)
                 }
             }
@@ -131,7 +123,7 @@ fun VerifyView(
 
         // Notes
         SectionTitle("Заметки ревьюера")
-        BulletNotesSimple(verify.notes)
+        BulletNotesSimple(item.notes)
     }
 }
 
