@@ -8,11 +8,11 @@ import com.example.myaiapp.chat.data.model.OllamaChatResponse
 import com.example.myaiapp.chat.data.model.OllamaOptions
 import com.example.myaiapp.chat.data.model.Role
 import com.example.myaiapp.chat.domain.repository.OllamaRepository
-import com.example.myaiapp.network.AIApi
+import com.example.myaiapp.network.MistralApi
 import javax.inject.Inject
 
 class OllamaRepositoryImpl @Inject constructor(
-    private val api: AIApi,
+    private val api: MistralApi,
     private val llmContentParser: LlmContentParser,
 ) : OllamaRepository {
 

@@ -21,7 +21,8 @@ class ChatActor @Inject constructor(
             is ChatCommand.CallLlm -> {
 
                 val result = orchestrator.userSays(
-                    text = command.content
+                    text = command.content,
+                    model = command.model,
                 )
 
                 when (result) {
@@ -36,7 +37,8 @@ class ChatActor @Inject constructor(
 
             is ChatCommand.CallLlmToMCP -> {
                 val result = mcpRepository.callLlmToMCP(
-                    command.content
+                    content = command.content,
+                    model = command.model,
                 )
 
                 onEvent(MCPResponse(result))
@@ -44,7 +46,8 @@ class ChatActor @Inject constructor(
 
             is ChatCommand.CallLlmToMCPGitHubPr -> {
                 val result = mcpRepository.callLlmToMCPGitHubPr(
-                    command.content
+                    content = command.content,
+                    model = command.model,
                 )
 
                 //mcpRepository.callLlmToMCPPrReport(command.content)
@@ -59,7 +62,8 @@ class ChatActor @Inject constructor(
                     command.key,
                 )*/
                 val result = dockerRepository.callLlmToDockerTest(
-                    command.content,
+                    content = command.content,
+                    model = command.model,
                 )
 
                 onEvent(ChatEvents.Internal.DockerResponse(result))

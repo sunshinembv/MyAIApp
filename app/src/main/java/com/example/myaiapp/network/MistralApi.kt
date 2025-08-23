@@ -5,7 +5,7 @@ import com.example.myaiapp.chat.data.model.OllamaChatResponse
 import retrofit2.http.Body
 import retrofit2.http.POST
 
-interface AIApi {
+interface MistralApi {
 
     @POST("api/chat")
     suspend fun chatOnce(@Body body: OllamaChatRequest): OllamaChatResponse

@@ -8,14 +8,18 @@ import com.example.myaiapp.chat.data.model.OllamaChatRequest
 import com.example.myaiapp.chat.data.model.OllamaOptions
 import com.example.myaiapp.chat.data.model.Role
 import com.example.myaiapp.chat.data.model.Summary
+import com.example.myaiapp.chat.data.toOllama
+import com.example.myaiapp.chat.data.toOpenRouter
 import com.example.myaiapp.chat.domain.model.LlmModels
-import com.example.myaiapp.network.AIApi
+import com.example.myaiapp.network.MistralApi
+import com.example.myaiapp.network.OpenRouterApi
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import javax.inject.Inject
 
 class InterviewAgent @Inject constructor(
-    private val api: AIApi,
+    private val mistralApi: MistralApi,
+    private val openRouterApi: OpenRouterApi,
     private val llmContentParser: LlmContentParser,
 ) {
 
@@ -113,19 +117,27 @@ class InterviewAgent @Inject constructor(
     )
 
     suspend fun next(
-        messages: List<OllamaChatMessage>
+        messages: List<OllamaChatMessage>,
+        model: LlmModels,
     ): InterviewAgentTurn {
         require(messages.firstOrNull()?.role == Role.SYSTEM) { "SYSTEM must be first" }
         require(messages.lastOrNull()?.role == Role.USER) { "Last must be USER" }
 
-        val response = api.chatOnce(
-            OllamaChatRequest(
-                model = LlmModels.MISTRAL.modelName,
-                messages = messages,
-                options = options,
-                format = "json"
-            )
+        val request = OllamaChatRequest(
+            model = model.modelName,
+            messages = messages,
+            options = options,
+            format = "json"
         )
+
+        val response = when (model) {
+            LlmModels.MISTRAL -> {
+                mistralApi.chatOnce(request)
+            }
+            LlmModels.DEEPSEEK_FREE -> {
+                openRouterApi.chat(request.toOpenRouter()).toOllama()
+            }
+        }
 
         val normalized =
             (llmContentParser.normalizeAssistantContent(response.message.content))

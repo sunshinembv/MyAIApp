@@ -3,7 +3,8 @@ package com.example.myaiapp.chat.di
 import android.content.Context
 import com.example.myaiapp.chat.presentation.ChatViewModel
 import com.example.myaiapp.data_provider.di.DataProviderModule
-import com.example.myaiapp.network.AIApi
+import com.example.myaiapp.network.MistralApi
+import com.example.myaiapp.network.OpenRouterApi
 import dagger.Component
 
 @Component(
@@ -23,6 +24,7 @@ interface ChatComponent {
 }
 
 interface ChatDeps {
-    fun aiApi(): AIApi
+    fun mistralApi(): MistralApi
+    fun openRouterApi(): OpenRouterApi
     fun context(): Context
 }
