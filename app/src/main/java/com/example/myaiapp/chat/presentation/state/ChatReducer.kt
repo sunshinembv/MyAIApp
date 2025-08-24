@@ -68,6 +68,13 @@ class ChatReducer @Inject constructor(
                             model = event.model
                         )
                     }
+
+                    ResponseType.RELEASE_OPS_SYSTEM_PROMPT -> {
+                        ChatCommand.CallLlmToReleaseApk(
+                            content = event.content,
+                            model = event.model,
+                        )
+                    }
                 }
                 Result(command)
             }
@@ -78,22 +85,6 @@ class ChatReducer @Inject constructor(
                 )
                 Result(null)
             }
-
-            /*is ChatEvents.Internal.MessageLoaded -> {
-                val idx = state.history.list.indexOfLast { it.role == Role.ASSISTANT && it.pending }
-                val newHistory = if (idx >= 0) {
-                    state.history.list.toMutableList().apply {
-                        this[idx] = this[idx].copy(response = null, pending = false, content = event.message, verify = null)
-                    }
-                } else state.history.list
-
-                val newState = state.copy(
-                    history = ImmutableList(newHistory),
-                    loading = false,
-                )
-                setState(newState)
-                Result(null)
-            }*/
 
             is ChatEvents.Internal.MCPResponse -> {
                 /*val idx = state.history.list.indexOfLast { it.role == Role.ASSISTANT && it.pending }
@@ -148,6 +139,14 @@ class ChatReducer @Inject constructor(
                 val summary = mapper.toSummaryItem(event.summary)
                 val verify = mapper.toVerifyItem(event.verify)
                 val newHistory = state.history.list + summary + verify
+
+                updateState(state, newHistory)
+                Result(null)
+            }
+
+            is ChatEvents.Internal.MessageLoaded -> {
+                val message = mapper.fromStringToMessageItem(event.message)
+                val newHistory = state.history.list + message
 
                 updateState(state, newHistory)
                 Result(null)

@@ -20,7 +20,7 @@ data class ChatState(
     val isEmptyState: Boolean = true,
     val typedText: String? = null,
     val isPending: Boolean = false,
-    val responseType: ResponseType = ResponseType.DOCKER_KOTLIN_TEST,
+    val responseType: ResponseType = ResponseType.RELEASE_OPS_SYSTEM_PROMPT,
 ) : State
 
 sealed class ChatEvents : Event {
@@ -35,8 +35,8 @@ sealed class ChatEvents : Event {
     }
 
     sealed class Internal : ChatEvents() {
-        /*data class MessageLoaded(val message: String) :
-            Internal()*/
+        data class MessageLoaded(val message: String) :
+            Internal()
 
         data class AskLoaded(val ask: OrchestratorResult.Ask) :
             Internal()
@@ -70,6 +70,11 @@ sealed class ChatCommand : Command {
     ) : ChatCommand()
 
     data class CallLlmToDocker(
+        val content: String,
+        val model: LlmModels,
+    ) : ChatCommand()
+
+    data class CallLlmToReleaseApk(
         val content: String,
         val model: LlmModels,
     ) : ChatCommand()
