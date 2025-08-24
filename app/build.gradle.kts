@@ -35,12 +35,24 @@ android {
 
     buildTypes {
         debug {
-            val fromLocal = localProps.getProperty("OPEN_ROUTER_API_KEY") ?: ""
-            val fromGradle = providers.gradleProperty("OPEN_ROUTER_API_KEY").orNull
-            val fromEnv = providers.environmentVariable("OPEN_ROUTER_API_KEY").orNull
-            //noinspection WrongGradleMethod
-            val key = sequenceOf(fromGradle, fromLocal, fromEnv).firstOrNull { !it.isNullOrBlank() } ?: ""
-            buildConfigField("String", "OPEN_ROUTER_API_KEY", key.asBuildConfigString())
+            run {
+                val fromLocal = localProps.getProperty("OPEN_ROUTER_API_KEY") ?: ""
+                val fromGradle = providers.gradleProperty("OPEN_ROUTER_API_KEY").orNull
+                val fromEnv = providers.environmentVariable("OPEN_ROUTER_API_KEY").orNull
+                //noinspection WrongGradleMethod
+                val key = sequenceOf(fromGradle, fromLocal, fromEnv).firstOrNull { !it.isNullOrBlank() } ?: ""
+                buildConfigField("String", "OPEN_ROUTER_API_KEY", key.asBuildConfigString())
+            }
+
+            // --- НОВОЕ: GitHub PAT для GitHub Actions dispatch ---
+            run {
+                val fromLocal = localProps.getProperty("GITHUB_PAT") ?: ""
+                val fromGradle = providers.gradleProperty("GITHUB_PAT").orNull
+                val fromEnv = providers.environmentVariable("GITHUB_PAT").orNull
+                //noinspection WrongGradleMethod
+                val key = sequenceOf(fromGradle, fromLocal, fromEnv).firstOrNull { !it.isNullOrBlank() } ?: ""
+                buildConfigField("String", "GITHUB_PAT", key.asBuildConfigString())
+            }
         }
         release {
             isMinifyEnabled = false

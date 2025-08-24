@@ -2,10 +2,14 @@ package com.example.myaiapp.chat.presentation.state
 
 import com.example.myaiapp.chat.data.agents.docker.DockerRepository
 import com.example.myaiapp.chat.data.agents.mcp.MCPRepository
+import com.example.myaiapp.chat.data.git_hub.ReleaseOpsRepository
 import com.example.myaiapp.chat.domain.agent_orchestrator.TwoAgentOrchestrator
 import com.example.myaiapp.chat.domain.agent_orchestrator.model.OrchestratorResult
+import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.AskLoaded
+import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.DockerResponse
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.MCPResponse
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.MCPResponseGitHubPr
+import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.MessageLoaded
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.SummeryAndReviewLoaded
 import com.example.myaiapp.core.Actor
 import javax.inject.Inject
@@ -14,6 +18,7 @@ class ChatActor @Inject constructor(
     private val orchestrator: TwoAgentOrchestrator,
     private val mcpRepository: MCPRepository,
     private val dockerRepository: DockerRepository,
+    private val releaseOpsRepository: ReleaseOpsRepository,
 ) : Actor<ChatCommand, ChatEvents.Internal> {
 
     override suspend fun execute(command: ChatCommand, onEvent: (ChatEvents.Internal) -> Unit) {
@@ -27,7 +32,7 @@ class ChatActor @Inject constructor(
 
                 when (result) {
                     is OrchestratorResult.Ask -> {
-                        onEvent(ChatEvents.Internal.AskLoaded(result))
+                        onEvent(AskLoaded(result))
                     }
                     is OrchestratorResult.SummaryAndReview -> {
                         onEvent(SummeryAndReviewLoaded(result.summary, result.verify))
@@ -66,7 +71,16 @@ class ChatActor @Inject constructor(
                     model = command.model,
                 )
 
-                onEvent(ChatEvents.Internal.DockerResponse(result))
+                onEvent(DockerResponse(result))
+            }
+
+            is ChatCommand.CallLlmToReleaseApk -> {
+                val result = releaseOpsRepository.runCommand(
+                    content = command.content,
+                    model = command.model,
+                )
+
+                onEvent(MessageLoaded(result))
             }
         }
     }

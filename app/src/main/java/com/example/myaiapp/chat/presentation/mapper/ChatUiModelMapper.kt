@@ -59,4 +59,10 @@ class ChatUiModelMapper @Inject constructor() {
             text = ask.question
         )
     }
+
+    fun fromStringToMessageItem(str: String): MessageItem {
+        return MessageItem(
+            text = str
+        )
+    }
 }
