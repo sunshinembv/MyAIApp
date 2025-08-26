@@ -2,7 +2,8 @@ package com.example.myaiapp.chat.presentation.state
 
 import com.example.myaiapp.chat.domain.model.ResponseType
 import com.example.myaiapp.chat.presentation.mapper.ChatUiModelMapper
-import com.example.myaiapp.chat.presentation.state.ChatCommand.CallLlm
+import com.example.myaiapp.chat.presentation.state.ChatCommand.*
+import com.example.myaiapp.chat.presentation.state.ChatCommand.CallLlmToOrchestrator
 import com.example.myaiapp.chat.presentation.state.ChatCommand.CallLlmToDocker
 import com.example.myaiapp.chat.presentation.state.ChatCommand.CallLlmToMCP
 import com.example.myaiapp.chat.presentation.state.ChatCommand.CallLlmToMCPGitHubPr
@@ -44,7 +45,7 @@ class ChatReducer @Inject constructor(
 
                 val command = when (event.responseType) {
                     ResponseType.JSON -> {
-                        CallLlm(
+                        CallLlmToOrchestrator(
                             content = event.content,
                             model = event.model
                         )
@@ -70,7 +71,14 @@ class ChatReducer @Inject constructor(
                     }
 
                     ResponseType.RELEASE_OPS_SYSTEM_PROMPT -> {
-                        ChatCommand.CallLlmToReleaseApk(
+                        CallLlmToReleaseApk(
+                            content = event.content,
+                            model = event.model,
+                        )
+                    }
+
+                    ResponseType.STRING -> {
+                        CallLlm(
                             content = event.content,
                             model = event.model,
                         )

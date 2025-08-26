@@ -13,8 +13,10 @@ fun OllamaChatRequest.toOpenRouter(): OpenRouterChatRequest = OpenRouterChatRequ
     model = model,
     messages = messages.map { OpenRouterMessage(role = it.role.name.lowercase(), content = it.content) },
     stream = if (stream) true else null,
+    temperature = options?.temperature,
+    maxTokens = options?.numPredict,
     // Optional: ask the model to include visible reasoning tokens
-    reasoning = OpenRouterReasoning(effort = "medium", exclude = true)
+    reasoning = OpenRouterReasoning(effort = "low", exclude = true)
 )
 
 fun OpenRouterChatResponse.toOllama(): OllamaChatResponse {

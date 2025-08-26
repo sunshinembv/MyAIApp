@@ -59,6 +59,11 @@ sealed class ChatCommand : Command {
         val model: LlmModels,
     ) : ChatCommand()
 
+    data class CallLlmToOrchestrator(
+        val content: String,
+        val model: LlmModels,
+    ) : ChatCommand()
+
     data class CallLlmToMCP(
         val content: String,
         val model: LlmModels,
