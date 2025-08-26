@@ -5,6 +5,7 @@ import com.example.myaiapp.chat.data.agents.mcp.MCPRepository
 import com.example.myaiapp.chat.data.git_hub.ReleaseOpsRepository
 import com.example.myaiapp.chat.domain.agent_orchestrator.TwoAgentOrchestrator
 import com.example.myaiapp.chat.domain.agent_orchestrator.model.OrchestratorResult
+import com.example.myaiapp.chat.domain.repository.OllamaRepository
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.AskLoaded
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.DockerResponse
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.MCPResponse
@@ -19,11 +20,12 @@ class ChatActor @Inject constructor(
     private val mcpRepository: MCPRepository,
     private val dockerRepository: DockerRepository,
     private val releaseOpsRepository: ReleaseOpsRepository,
+    private val ollamaRepository: OllamaRepository,
 ) : Actor<ChatCommand, ChatEvents.Internal> {
 
     override suspend fun execute(command: ChatCommand, onEvent: (ChatEvents.Internal) -> Unit) {
         when (command) {
-            is ChatCommand.CallLlm -> {
+            is ChatCommand.CallLlmToOrchestrator -> {
 
                 val result = orchestrator.userSays(
                     text = command.content,
@@ -76,6 +78,15 @@ class ChatActor @Inject constructor(
 
             is ChatCommand.CallLlmToReleaseApk -> {
                 val result = releaseOpsRepository.runCommand(
+                    content = command.content,
+                    model = command.model,
+                )
+
+                onEvent(MessageLoaded(result))
+            }
+
+            is ChatCommand.CallLlm ->  {
+                val result = ollamaRepository.chat(
                     content = command.content,
                     model = command.model,
                 )

@@ -7,16 +7,29 @@ import com.example.myaiapp.chat.data.model.OllamaChatRequest
 import com.example.myaiapp.chat.data.model.OllamaChatResponse
 import com.example.myaiapp.chat.data.model.OllamaOptions
 import com.example.myaiapp.chat.data.model.Role
+import com.example.myaiapp.chat.data.toOllama
+import com.example.myaiapp.chat.data.toOpenRouter
+import com.example.myaiapp.chat.domain.PromptBuilder
+import com.example.myaiapp.chat.domain.model.LlmModels
+import com.example.myaiapp.chat.domain.model.ResponseType
 import com.example.myaiapp.chat.domain.repository.OllamaRepository
 import com.example.myaiapp.network.MistralApi
+import com.example.myaiapp.network.OpenRouterApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class OllamaRepositoryImpl @Inject constructor(
-    private val api: MistralApi,
+    private val mistralApi: MistralApi,
+    private val openRouterApi: OpenRouterApi,
     private val llmContentParser: LlmContentParser,
 ) : OllamaRepository {
 
     val rawHistory = mutableListOf<OllamaChatMessage>()
+
+    private val history: MutableList<OllamaChatMessage> = mutableListOf(
+        OllamaChatMessage(Role.SYSTEM, PromptBuilder.systemPrompt(ResponseType.STRING))
+    )
 
     override suspend fun chatOnce(
         model: String,
@@ -43,7 +56,7 @@ class OllamaRepositoryImpl @Inject constructor(
         )
 
         val response = ensureJsonOrRetry(newHistory) { messages ->
-            api.chatOnce(
+            mistralApi.chatOnce(
                 OllamaChatRequest(
                     model = model,
                     messages = messages,
@@ -64,6 +77,35 @@ class OllamaRepositoryImpl @Inject constructor(
         val json = normalized.removeSuffix("<<<END>>>")
         val llmReply = llmContentParser.parseAs(json, rawHistory)
         return llmReply
+    }
+
+    override suspend fun chat(content: String, model: LlmModels): String {
+        return withContext(Dispatchers.IO) {
+            history += OllamaChatMessage(Role.USER, content)
+            val request = OllamaChatRequest(
+                model = model.modelName,
+                messages = history,
+                options = OllamaOptions(
+                    temperature = 1.1,
+                    numPredict = 2048,
+                    topP = 1.0,
+                    seed = 42,
+                ),
+                stream = false,
+                keepAlive = "5m"
+            )
+
+            val response = when (model) {
+                LlmModels.MISTRAL -> {
+                    mistralApi.chatOnce(request)
+                }
+                LlmModels.DEEPSEEK_FREE -> {
+                    openRouterApi.chat(request.toOpenRouter()).toOllama()
+                }
+            }
+
+            response.message.content
+        }
     }
 
     private suspend fun ensureJsonOrRetry(
