@@ -1,5 +1,6 @@
 package com.example.code_agent
 
+import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -30,10 +31,20 @@ data class ChatMessage(
 )
 
 @JsonClass(generateAdapter = true)
-data class ChatResponse(val choices: List<Choice>)
+data class ChatResponse(
+    val choices: List<Choice>,
+    val usage: Usage?
+)
 
 @JsonClass(generateAdapter = true)
 data class Choice(val index: Int, val message: ChatMessage)
+
+@JsonClass(generateAdapter = true)
+data class Usage(
+    @Json(name = "prompt_tokens") val promptTokens: Int,
+    @Json(name = "completion_tokens") val completionTokens: Int,
+    @Json(name = "total_tokens") val totalTokens: Int
+)
 
 class OpenRouterAuthInterceptor(private val apiKey: String) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
