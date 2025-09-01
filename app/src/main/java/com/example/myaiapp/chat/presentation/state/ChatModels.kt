@@ -1,5 +1,6 @@
 package com.example.myaiapp.chat.presentation.state
 
+import com.example.myaiapp.chat.data.model.OllamaChatMessage
 import com.example.myaiapp.chat.data.model.PrBrief
 import com.example.myaiapp.chat.data.model.Summary
 import com.example.myaiapp.chat.data.model.Verify
@@ -20,7 +21,7 @@ data class ChatState(
     val isEmptyState: Boolean = true,
     val typedText: String? = null,
     val isPending: Boolean = false,
-    val responseType: ResponseType = ResponseType.RELEASE_OPS_SYSTEM_PROMPT,
+    val responseType: ResponseType = ResponseType.JSON,
 ) : State
 
 sealed class ChatEvents : Event {
@@ -30,6 +31,8 @@ sealed class ChatEvents : Event {
             val model: LlmModels,
             val responseType: ResponseType,
         ) : Ui()
+
+        data object GetHistoryFromCache : Ui()
 
         data class Typing(val text: String) : Ui()
     }
@@ -48,6 +51,7 @@ sealed class ChatEvents : Event {
         data class MCPResponseGitHubPr(val prBrief: List<PrBrief>): Internal()
 
         data class DockerResponse(val runResult: RunResult): Internal()
+        data class ChatHistoryLoaded(val history: List<OllamaChatMessage>): Internal()
 
         data class ErrorLoading(val error: Throwable) : Internal()
     }
@@ -83,4 +87,6 @@ sealed class ChatCommand : Command {
         val content: String,
         val model: LlmModels,
     ) : ChatCommand()
+
+    data object GetHistoryFromCache: ChatCommand()
 }

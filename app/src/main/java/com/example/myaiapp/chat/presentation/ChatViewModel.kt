@@ -19,9 +19,14 @@ class ChatViewModel(
     override val state: StateFlow<ChatState>
         get() = reducer.state
 
+    init {
+        obtainEvent(ChatEvents.Ui.GetHistoryFromCache)
+    }
+
     fun obtainEvent(event: ChatEvents.Ui) {
         when (event) {
 
+            ChatEvents.Ui.GetHistoryFromCache,
             is ChatEvents.Ui.CallLlm -> {
                 handleEvent(event)
             }

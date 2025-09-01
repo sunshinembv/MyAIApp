@@ -1,6 +1,7 @@
 package com.example.myaiapp.chat.di
 
 import android.content.Context
+import com.example.myaiapp.chat.data.db.dao.MessageDao
 import com.example.myaiapp.chat.presentation.ChatViewModel
 import com.example.myaiapp.data_provider.di.DataProviderModule
 import com.example.myaiapp.network.GitHubActionsApi
@@ -25,8 +26,9 @@ interface ChatComponent {
 }
 
 interface ChatDeps {
+    fun context(): Context
     fun mistralApi(): MistralApi
     fun openRouterApi(): OpenRouterApi
     fun gitHubActionsApi(): GitHubActionsApi
-    fun context(): Context
+    fun messageDao(): MessageDao
 }

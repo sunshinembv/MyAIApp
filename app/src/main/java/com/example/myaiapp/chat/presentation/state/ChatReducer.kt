@@ -2,11 +2,13 @@ package com.example.myaiapp.chat.presentation.state
 
 import com.example.myaiapp.chat.domain.model.ResponseType
 import com.example.myaiapp.chat.presentation.mapper.ChatUiModelMapper
-import com.example.myaiapp.chat.presentation.state.ChatCommand.*
-import com.example.myaiapp.chat.presentation.state.ChatCommand.CallLlmToOrchestrator
+import com.example.myaiapp.chat.presentation.state.ChatCommand.CallLlm
 import com.example.myaiapp.chat.presentation.state.ChatCommand.CallLlmToDocker
 import com.example.myaiapp.chat.presentation.state.ChatCommand.CallLlmToMCP
 import com.example.myaiapp.chat.presentation.state.ChatCommand.CallLlmToMCPGitHubPr
+import com.example.myaiapp.chat.presentation.state.ChatCommand.CallLlmToOrchestrator
+import com.example.myaiapp.chat.presentation.state.ChatCommand.CallLlmToReleaseApk
+import com.example.myaiapp.chat.presentation.state.ChatCommand.GetHistoryFromCache
 import com.example.myaiapp.chat.presentation.ui_model.item.OwnMessageItem
 import com.example.myaiapp.chat.presentation.ui_model.item.UiItem
 import com.example.myaiapp.core.Reducer
@@ -27,11 +29,7 @@ class ChatReducer @Inject constructor(
                     text = event.content,
                 )
 
-                val newHistory = mutableListOf<UiItem>()
-                state.history.list.onEach {
-                    newHistory.add(it)
-                }
-                newHistory.add(userMessage)
+                val newHistory = state.history.list + userMessage
 
                 setState(
                     state.copy(
@@ -92,6 +90,10 @@ class ChatReducer @Inject constructor(
                     state.copy(typedText = event.text)
                 )
                 Result(null)
+            }
+
+            ChatEvents.Ui.GetHistoryFromCache -> {
+                Result(GetHistoryFromCache)
             }
 
             is ChatEvents.Internal.MCPResponse -> {
@@ -156,6 +158,13 @@ class ChatReducer @Inject constructor(
                 val message = mapper.fromStringToMessageItem(event.message)
                 val newHistory = state.history.list + message
 
+                updateState(state, newHistory)
+                Result(null)
+            }
+
+            is ChatEvents.Internal.ChatHistoryLoaded -> {
+                val messages = mapper.toChatMessages(event.history)
+                val newHistory = state.history.list + messages
                 updateState(state, newHistory)
                 Result(null)
             }
