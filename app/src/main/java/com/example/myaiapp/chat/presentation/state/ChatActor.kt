@@ -93,6 +93,11 @@ class ChatActor @Inject constructor(
 
                 onEvent(MessageLoaded(result))
             }
+
+            ChatCommand.GetHistoryFromCache -> {
+                val result = orchestrator.getChatHistory()
+                onEvent(ChatEvents.Internal.ChatHistoryLoaded(result))
+            }
         }
     }
 }

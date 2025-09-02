@@ -1,14 +1,18 @@
 package com.example.myaiapp.chat.presentation.mapper
 
+import com.example.myaiapp.chat.data.model.OllamaChatMessage
 import com.example.myaiapp.chat.data.model.PrBrief
+import com.example.myaiapp.chat.data.model.Role
 import com.example.myaiapp.chat.data.model.Summary
 import com.example.myaiapp.chat.data.model.Verify
 import com.example.myaiapp.chat.data.ssh.SshDockerExecutor
 import com.example.myaiapp.chat.domain.agent_orchestrator.model.OrchestratorResult
 import com.example.myaiapp.chat.presentation.ui_model.item.MessageItem
+import com.example.myaiapp.chat.presentation.ui_model.item.OwnMessageItem
 import com.example.myaiapp.chat.presentation.ui_model.item.PrBriefItem
 import com.example.myaiapp.chat.presentation.ui_model.item.RunResultItem
 import com.example.myaiapp.chat.presentation.ui_model.item.SummaryItem
+import com.example.myaiapp.chat.presentation.ui_model.item.UiItem
 import com.example.myaiapp.chat.presentation.ui_model.item.VerifyItem
 import javax.inject.Inject
 
@@ -64,5 +68,15 @@ class ChatUiModelMapper @Inject constructor() {
         return MessageItem(
             text = str
         )
+    }
+
+    fun toChatMessages(ollamaChatMessages: List<OllamaChatMessage>): List<UiItem> {
+        return ollamaChatMessages.map { message ->
+            when (message.role) {
+                Role.USER -> OwnMessageItem(message.content)
+                Role.ASSISTANT -> MessageItem(message.content)
+                Role.SYSTEM -> error("Unexpected role")
+            }
+        }
     }
 }
