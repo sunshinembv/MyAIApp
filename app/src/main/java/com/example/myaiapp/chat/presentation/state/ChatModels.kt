@@ -9,6 +9,7 @@ import com.example.myaiapp.chat.domain.agent_orchestrator.model.OrchestratorResu
 import com.example.myaiapp.chat.domain.model.LlmModels
 import com.example.myaiapp.chat.domain.model.ResponseType
 import com.example.myaiapp.chat.presentation.ui_model.item.UiItem
+import com.example.myaiapp.chat.voice.VoiceState
 import com.example.myaiapp.core.Command
 import com.example.myaiapp.core.Event
 import com.example.myaiapp.core.State
@@ -16,6 +17,7 @@ import com.example.myaiapp.utils.ImmutableList
 
 data class ChatState(
     val history: ImmutableList<UiItem> = ImmutableList(emptyList()),
+    val voiceState: VoiceState = VoiceState.Idle,
     val model: LlmModels = LlmModels.MISTRAL,
     val error: String? = null,
     val isEmptyState: Boolean = true,
@@ -54,6 +56,15 @@ sealed class ChatEvents : Event {
         data class ChatHistoryLoaded(val history: List<OllamaChatMessage>): Internal()
 
         data class ErrorLoading(val error: Throwable) : Internal()
+    }
+
+    sealed class VoiceEvent: ChatEvents() {
+        data object ListeningStarted : VoiceEvent()
+        data class PartialUpdated(val text: String) : VoiceEvent()
+        data class FinalRecognized(val query: String) : VoiceEvent()
+        data class Speaking(val chunk: String) : VoiceEvent()
+        data class Failed(val msg: String) : VoiceEvent()
+        data object Idle : VoiceEvent()
     }
 }
 

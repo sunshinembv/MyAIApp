@@ -28,6 +28,7 @@ import com.example.myaiapp.chat.presentation.ui_model.item.PendingItem
 import com.example.myaiapp.chat.presentation.ui_model.item.UiItem
 import com.example.myaiapp.ui.UiItemDelegate
 import com.example.myaiapp.ui.components.SendMessageTextField
+import com.example.myaiapp.ui.components.VoiceBar
 import com.example.myaiapp.ui.components.basic.AppTopAppBar
 import com.example.myaiapp.ui.components.basic.AppTopAppBarIconItem
 import com.example.myaiapp.ui.theme.MyAIAppTheme
@@ -44,7 +45,9 @@ fun ChatRoute(
         chatState = state,
         popBackStack = popBackStack,
         obtainEvent = viewModel::obtainEvent,
-        modifier = modifier
+        onSpeak = viewModel::speak,
+        onStop = viewModel::stop,
+        modifier = modifier,
     )
 }
 
@@ -54,6 +57,8 @@ fun ChatScreen(
     chatState: ChatState,
     popBackStack: () -> Unit,
     obtainEvent: (ChatEvents.Ui) -> Unit,
+    onSpeak: () -> Unit,
+    onStop: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -71,6 +76,13 @@ fun ChatScreen(
                         )
                     )
                 }
+            )
+        },
+        floatingActionButton = {
+            VoiceBar(
+                state = chatState.voiceState,
+                onSpeak = onSpeak,
+                onStop = onStop,
             )
         },
         backgroundColor = MyAIAppTheme.colors.chatBackgroundColor
