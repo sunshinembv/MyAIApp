@@ -28,7 +28,7 @@ class OllamaRepositoryImpl @Inject constructor(
     val rawHistory = mutableListOf<OllamaChatMessage>()
 
     private val history: MutableList<OllamaChatMessage> = mutableListOf(
-        OllamaChatMessage(Role.SYSTEM, PromptBuilder.systemPrompt(ResponseType.STRING))
+        OllamaChatMessage(Role.SYSTEM, PromptBuilder.systemPrompt(ResponseType.VOICE))
     )
 
     override suspend fun chatOnce(
@@ -86,8 +86,8 @@ class OllamaRepositoryImpl @Inject constructor(
                 model = model.modelName,
                 messages = history,
                 options = OllamaOptions(
-                    temperature = 1.1,
-                    numPredict = 2048,
+                    temperature = 0.3,
+                    numPredict = 256,
                     topP = 1.0,
                     seed = 42,
                 ),

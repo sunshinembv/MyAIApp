@@ -11,6 +11,7 @@ import com.example.myaiapp.chat.presentation.state.ChatCommand.CallLlmToReleaseA
 import com.example.myaiapp.chat.presentation.state.ChatCommand.GetHistoryFromCache
 import com.example.myaiapp.chat.presentation.ui_model.item.OwnMessageItem
 import com.example.myaiapp.chat.presentation.ui_model.item.UiItem
+import com.example.myaiapp.chat.voice.VoiceState
 import com.example.myaiapp.core.Reducer
 import com.example.myaiapp.core.Result
 import com.example.myaiapp.utils.ImmutableList
@@ -48,18 +49,21 @@ class ChatReducer @Inject constructor(
                             model = event.model
                         )
                     }
+
                     ResponseType.MCP -> {
                         CallLlmToMCP(
                             content = event.content,
                             model = event.model
                         )
                     }
+
                     ResponseType.MCP_GIT_PR -> {
                         CallLlmToMCPGitHubPr(
                             content = event.content,
                             model = event.model
                         )
                     }
+
                     ResponseType.DOCKER_KOTLIN,
                     ResponseType.DOCKER_KOTLIN_TEST -> {
                         CallLlmToDocker(
@@ -76,6 +80,13 @@ class ChatReducer @Inject constructor(
                     }
 
                     ResponseType.STRING -> {
+                        CallLlm(
+                            content = event.content,
+                            model = event.model,
+                        )
+                    }
+
+                    ResponseType.VOICE -> {
                         CallLlm(
                             content = event.content,
                             model = event.model,
@@ -166,6 +177,65 @@ class ChatReducer @Inject constructor(
                 val messages = mapper.toChatMessages(event.history)
                 val newHistory = state.history.list + messages
                 updateState(state, newHistory)
+                Result(null)
+            }
+
+            //Voice
+            is ChatEvents.VoiceEvent.Failed -> {
+                setState(
+                    state.copy(voiceState = VoiceState.Error(event.msg))
+                )
+                Result(null)
+            }
+
+            is ChatEvents.VoiceEvent.FinalRecognized -> {
+
+                val message = mapper.fromSpeechToOwnMessage(event.query)
+                val newHistory = state.history.list + message
+
+                setState(
+                    state.copy(
+                        isPending = true,
+                        history = ImmutableList(newHistory),
+                        voiceState = VoiceState.Thinking(event.query)
+                    )
+                )
+                Result(null)
+            }
+
+            ChatEvents.VoiceEvent.Idle -> {
+                setState(
+                    state.copy(voiceState = VoiceState.Idle)
+                )
+                Result(null)
+            }
+
+            ChatEvents.VoiceEvent.ListeningStarted -> {
+                setState(
+                    state.copy(voiceState = VoiceState.Listening)
+                )
+                Result(null)
+            }
+
+            is ChatEvents.VoiceEvent.PartialUpdated -> {
+                setState(
+                    state.copy(voiceState = VoiceState.Recognizing(event.text))
+                )
+                Result(null)
+            }
+
+            is ChatEvents.VoiceEvent.Speaking -> {
+
+                val message = mapper.fromStringToMessageItem(event.chunk)
+                val newHistory = state.history.list + message
+
+                setState(
+                    state.copy(
+                        isPending = false,
+                        history = ImmutableList(newHistory),
+                        voiceState = VoiceState.Speaking(event.chunk),
+                    )
+                )
                 Result(null)
             }
         }

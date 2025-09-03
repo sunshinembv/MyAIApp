@@ -79,4 +79,10 @@ class ChatUiModelMapper @Inject constructor() {
             }
         }
     }
+
+    fun fromSpeechToOwnMessage(str: String): OwnMessageItem {
+        return OwnMessageItem(
+            text = str
+        )
+    }
 }
