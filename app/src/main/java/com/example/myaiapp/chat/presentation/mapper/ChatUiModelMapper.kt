@@ -7,9 +7,11 @@ import com.example.myaiapp.chat.data.model.Summary
 import com.example.myaiapp.chat.data.model.Verify
 import com.example.myaiapp.chat.data.ssh.SshDockerExecutor
 import com.example.myaiapp.chat.domain.agent_orchestrator.model.OrchestratorResult
+import com.example.myaiapp.chat.domain.model.ReasoningTurn
 import com.example.myaiapp.chat.presentation.ui_model.item.MessageItem
 import com.example.myaiapp.chat.presentation.ui_model.item.OwnMessageItem
 import com.example.myaiapp.chat.presentation.ui_model.item.PrBriefItem
+import com.example.myaiapp.chat.presentation.ui_model.item.ReasoningTurnItem
 import com.example.myaiapp.chat.presentation.ui_model.item.RunResultItem
 import com.example.myaiapp.chat.presentation.ui_model.item.SummaryItem
 import com.example.myaiapp.chat.presentation.ui_model.item.UiItem
@@ -83,6 +85,15 @@ class ChatUiModelMapper @Inject constructor() {
     fun fromSpeechToOwnMessage(str: String): OwnMessageItem {
         return OwnMessageItem(
             text = str
+        )
+    }
+
+    fun toReasoningTurnItem(turn: ReasoningTurn): ReasoningTurnItem {
+        return ReasoningTurnItem(
+            question = turn.question,
+            think = turn.think,
+            verify = turn.verify,
+            finalAnswer = turn.finalAnswer,
         )
     }
 }

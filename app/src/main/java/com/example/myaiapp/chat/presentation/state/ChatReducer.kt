@@ -8,10 +8,15 @@ import com.example.myaiapp.chat.presentation.state.ChatCommand.CallLlmToMCP
 import com.example.myaiapp.chat.presentation.state.ChatCommand.CallLlmToMCPGitHubPr
 import com.example.myaiapp.chat.presentation.state.ChatCommand.CallLlmToOrchestrator
 import com.example.myaiapp.chat.presentation.state.ChatCommand.CallLlmToReleaseApk
+import com.example.myaiapp.chat.presentation.state.ChatCommand.CallLlmWithReasoningMode
 import com.example.myaiapp.chat.presentation.state.ChatCommand.GetHistoryFromCache
 import com.example.myaiapp.chat.presentation.ui_model.item.OwnMessageItem
 import com.example.myaiapp.chat.presentation.ui_model.item.UiItem
 import com.example.myaiapp.chat.voice.VoiceState
+import com.example.myaiapp.chat.voice.VoiceState.Error
+import com.example.myaiapp.chat.voice.VoiceState.Recognizing
+import com.example.myaiapp.chat.voice.VoiceState.Speaking
+import com.example.myaiapp.chat.voice.VoiceState.Thinking
 import com.example.myaiapp.core.Reducer
 import com.example.myaiapp.core.Result
 import com.example.myaiapp.utils.ImmutableList
@@ -90,6 +95,13 @@ class ChatReducer @Inject constructor(
                         CallLlm(
                             content = event.content,
                             model = event.model,
+                        )
+                    }
+
+                    ResponseType.WITH_REASONING -> {
+                        CallLlmWithReasoningMode(
+                            content = event.content,
+                            model = event.model
                         )
                     }
                 }
@@ -183,7 +195,7 @@ class ChatReducer @Inject constructor(
             //Voice
             is ChatEvents.VoiceEvent.Failed -> {
                 setState(
-                    state.copy(voiceState = VoiceState.Error(event.msg))
+                    state.copy(voiceState = Error(event.msg))
                 )
                 Result(null)
             }
@@ -197,7 +209,7 @@ class ChatReducer @Inject constructor(
                     state.copy(
                         isPending = true,
                         history = ImmutableList(newHistory),
-                        voiceState = VoiceState.Thinking(event.query)
+                        voiceState = Thinking(event.query)
                     )
                 )
                 Result(null)
@@ -219,7 +231,7 @@ class ChatReducer @Inject constructor(
 
             is ChatEvents.VoiceEvent.PartialUpdated -> {
                 setState(
-                    state.copy(voiceState = VoiceState.Recognizing(event.text))
+                    state.copy(voiceState = Recognizing(event.text))
                 )
                 Result(null)
             }
@@ -233,9 +245,17 @@ class ChatReducer @Inject constructor(
                     state.copy(
                         isPending = false,
                         history = ImmutableList(newHistory),
-                        voiceState = VoiceState.Speaking(event.chunk),
+                        voiceState = Speaking(event.chunk),
                     )
                 )
+                Result(null)
+            }
+
+            is ChatEvents.Internal.ReasoningTurnLoaded -> {
+                val message = mapper.toReasoningTurnItem(event.turn)
+                val newHistory = state.history.list + message
+
+                updateState(state, newHistory)
                 Result(null)
             }
         }

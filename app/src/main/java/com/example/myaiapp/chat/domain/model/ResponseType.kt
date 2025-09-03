@@ -9,4 +9,5 @@ enum class ResponseType {
     DOCKER_KOTLIN_TEST,
     RELEASE_OPS_SYSTEM_PROMPT,
     VOICE,
+    WITH_REASONING,
 }

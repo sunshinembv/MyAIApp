@@ -7,6 +7,7 @@ import com.example.myaiapp.chat.data.model.Verify
 import com.example.myaiapp.chat.data.ssh.SshDockerExecutor.RunResult
 import com.example.myaiapp.chat.domain.agent_orchestrator.model.OrchestratorResult
 import com.example.myaiapp.chat.domain.model.LlmModels
+import com.example.myaiapp.chat.domain.model.ReasoningTurn
 import com.example.myaiapp.chat.domain.model.ResponseType
 import com.example.myaiapp.chat.presentation.ui_model.item.UiItem
 import com.example.myaiapp.chat.voice.VoiceState
@@ -18,12 +19,12 @@ import com.example.myaiapp.utils.ImmutableList
 data class ChatState(
     val history: ImmutableList<UiItem> = ImmutableList(emptyList()),
     val voiceState: VoiceState = VoiceState.Idle,
-    val model: LlmModels = LlmModels.MISTRAL,
+    val model: LlmModels = LlmModels.DEEPSEEK_FREE,
     val error: String? = null,
     val isEmptyState: Boolean = true,
     val typedText: String? = null,
     val isPending: Boolean = false,
-    val responseType: ResponseType = ResponseType.JSON,
+    val responseType: ResponseType = ResponseType.WITH_REASONING,
 ) : State
 
 sealed class ChatEvents : Event {
@@ -53,7 +54,10 @@ sealed class ChatEvents : Event {
         data class MCPResponseGitHubPr(val prBrief: List<PrBrief>): Internal()
 
         data class DockerResponse(val runResult: RunResult): Internal()
+
         data class ChatHistoryLoaded(val history: List<OllamaChatMessage>): Internal()
+
+        data class ReasoningTurnLoaded(val turn: ReasoningTurn): Internal()
 
         data class ErrorLoading(val error: Throwable) : Internal()
     }
@@ -95,6 +99,11 @@ sealed class ChatCommand : Command {
     ) : ChatCommand()
 
     data class CallLlmToReleaseApk(
+        val content: String,
+        val model: LlmModels,
+    ) : ChatCommand()
+
+    data class CallLlmWithReasoningMode(
         val content: String,
         val model: LlmModels,
     ) : ChatCommand()
