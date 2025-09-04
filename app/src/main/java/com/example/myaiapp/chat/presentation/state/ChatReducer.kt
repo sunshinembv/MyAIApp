@@ -104,6 +104,13 @@ class ChatReducer @Inject constructor(
                             model = event.model
                         )
                     }
+
+                    ResponseType.MESSENGER -> {
+                        CallLlm(
+                            content = event.content,
+                            model = event.model,
+                        )
+                    }
                 }
                 Result(command)
             }
@@ -253,6 +260,14 @@ class ChatReducer @Inject constructor(
 
             is ChatEvents.Internal.ReasoningTurnLoaded -> {
                 val message = mapper.toReasoningTurnItem(event.turn)
+                val newHistory = state.history.list + message
+
+                updateState(state, newHistory)
+                Result(null)
+            }
+
+            is ChatEvents.Internal.LimitExceeded -> {
+                val message = mapper.fromStringToMessageItem(event.message)
                 val newHistory = state.history.list + message
 
                 updateState(state, newHistory)

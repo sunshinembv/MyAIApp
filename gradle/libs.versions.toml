@@ -8,6 +8,7 @@ androidx-material = "1.9.0"
 androidx-navigation = "2.9.3"
 coroutines = "1.10.2"
 dagger = "2.57.1"
+datastore-preferences = "1.1.7"
 kotlinx-serialization-json = "1.9.0"
 room = "2.7.2"
 retrofit = "3.0.0"
@@ -25,6 +26,7 @@ jetbrains-kotlin-jvm = "2.2.10"
 [libraries]
 #androidx
 androidx-core = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore-preferences" }
 androidx-lifecycle = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle" }
 
 #androidx-compose

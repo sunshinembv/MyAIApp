@@ -8,6 +8,7 @@ import com.example.myaiapp.data_provider.di.DataProviderModule
 import com.example.myaiapp.network.GitHubActionsApi
 import com.example.myaiapp.network.MistralApi
 import com.example.myaiapp.network.OpenRouterApi
+import com.example.myaiapp.shared_preferences.di.SharedPreferencesProviderModule
 import dagger.Component
 
 @Component(
@@ -16,6 +17,7 @@ import dagger.Component
         MessageRepositoryModule::class,
         DataProviderModule::class,
         VoiceModule::class,
+        SharedPreferencesProviderModule::class,
     ],
     dependencies = [ChatDeps::class]
 )

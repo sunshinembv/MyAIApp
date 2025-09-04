@@ -15,6 +15,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import com.example.myaiapp.R
+import com.example.myaiapp.chat.data.llm_policy.UserRoleHolder
 import com.example.myaiapp.ui.theme.MyAIAppTheme
 
 @Composable
@@ -31,7 +32,7 @@ fun AppTopAppBar(
         title = {
             title?.let {
                 Text(
-                    text = title,
+                    text = UserRoleHolder.role.name,
                     style = MyAIAppTheme.typography.toolbar
                 )
             }

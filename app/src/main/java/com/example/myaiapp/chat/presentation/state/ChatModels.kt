@@ -1,5 +1,6 @@
 package com.example.myaiapp.chat.presentation.state
 
+import com.example.myaiapp.chat.data.llm_policy.UserRoleHolder
 import com.example.myaiapp.chat.data.model.OllamaChatMessage
 import com.example.myaiapp.chat.data.model.PrBrief
 import com.example.myaiapp.chat.data.model.Summary
@@ -9,6 +10,7 @@ import com.example.myaiapp.chat.domain.agent_orchestrator.model.OrchestratorResu
 import com.example.myaiapp.chat.domain.model.LlmModels
 import com.example.myaiapp.chat.domain.model.ReasoningTurn
 import com.example.myaiapp.chat.domain.model.ResponseType
+import com.example.myaiapp.chat.domain.model.UserRole
 import com.example.myaiapp.chat.presentation.ui_model.item.UiItem
 import com.example.myaiapp.chat.voice.VoiceState
 import com.example.myaiapp.core.Command
@@ -19,12 +21,13 @@ import com.example.myaiapp.utils.ImmutableList
 data class ChatState(
     val history: ImmutableList<UiItem> = ImmutableList(emptyList()),
     val voiceState: VoiceState = VoiceState.Idle,
-    val model: LlmModels = LlmModels.DEEPSEEK_FREE,
+    val model: LlmModels = LlmModels.MISTRAL,
     val error: String? = null,
     val isEmptyState: Boolean = true,
     val typedText: String? = null,
     val isPending: Boolean = false,
-    val responseType: ResponseType = ResponseType.WITH_REASONING,
+    val responseType: ResponseType = ResponseType.MESSENGER,
+    val userRole: UserRole = UserRoleHolder.role,
 ) : State
 
 sealed class ChatEvents : Event {
@@ -60,6 +63,8 @@ sealed class ChatEvents : Event {
         data class ReasoningTurnLoaded(val turn: ReasoningTurn): Internal()
 
         data class ErrorLoading(val error: Throwable) : Internal()
+
+        data class LimitExceeded(val message: String) : Internal()
     }
 
     sealed class VoiceEvent: ChatEvents() {

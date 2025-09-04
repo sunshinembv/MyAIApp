@@ -10,4 +10,5 @@ enum class ResponseType {
     RELEASE_OPS_SYSTEM_PROMPT,
     VOICE,
     WITH_REASONING,
+    MESSENGER,
 }
