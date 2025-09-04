@@ -28,7 +28,6 @@ import com.example.myaiapp.chat.presentation.ui_model.item.PendingItem
 import com.example.myaiapp.chat.presentation.ui_model.item.UiItem
 import com.example.myaiapp.ui.UiItemDelegate
 import com.example.myaiapp.ui.components.SendMessageTextField
-import com.example.myaiapp.ui.components.VoiceBar
 import com.example.myaiapp.ui.components.basic.AppTopAppBar
 import com.example.myaiapp.ui.components.basic.AppTopAppBarIconItem
 import com.example.myaiapp.ui.theme.MyAIAppTheme
@@ -78,13 +77,13 @@ fun ChatScreen(
                 }
             )
         },
-        floatingActionButton = {
+        /*floatingActionButton = {
             VoiceBar(
                 state = chatState.voiceState,
                 onSpeak = onSpeak,
                 onStop = onStop,
             )
-        },
+        },*/
         backgroundColor = MyAIAppTheme.colors.chatBackgroundColor
     ) { padding ->
         ChatContent(

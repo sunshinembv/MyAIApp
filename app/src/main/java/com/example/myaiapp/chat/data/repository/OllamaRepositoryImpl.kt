@@ -108,6 +108,43 @@ class OllamaRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun complete(
+        system: String,
+        content: String,
+        model: LlmModels
+    ): String {
+        val history: MutableList<OllamaChatMessage> = mutableListOf(
+            OllamaChatMessage(Role.SYSTEM, system)
+        )
+
+        return withContext(Dispatchers.IO) {
+            history += OllamaChatMessage(Role.USER, content)
+            val request = OllamaChatRequest(
+                model = model.modelName,
+                messages = history,
+                options = OllamaOptions(
+                    temperature = 0.2,
+                    numPredict = 2048,
+                    topP = 1.0,
+                    seed = 42,
+                ),
+                stream = false,
+                keepAlive = "5m"
+            )
+
+            val response = when (model) {
+                LlmModels.MISTRAL -> {
+                    mistralApi.chatOnce(request)
+                }
+                LlmModels.DEEPSEEK_FREE -> {
+                    openRouterApi.chat(request.toOpenRouter()).toOllama()
+                }
+            }
+
+            response.message.content
+        }
+    }
+
     private suspend fun ensureJsonOrRetry(
         messages: List<OllamaChatMessage>,
         call: suspend (List<OllamaChatMessage>) -> OllamaChatResponse

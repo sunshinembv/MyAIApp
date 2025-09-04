@@ -7,4 +7,5 @@ import com.example.myaiapp.chat.domain.model.LlmModels
 interface OllamaRepository {
     suspend fun chatOnce(model: String, systemPrompt: String, content: String, history: List<OllamaChatMessage>): LlmReply
     suspend fun chat(content: String, model: LlmModels): String
+    suspend fun complete(system: String, content: String, model: LlmModels): String
 }

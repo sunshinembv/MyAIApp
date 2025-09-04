@@ -6,11 +6,14 @@ import com.example.myaiapp.chat.data.git_hub.ReleaseOpsRepository
 import com.example.myaiapp.chat.domain.agent_orchestrator.TwoAgentOrchestrator
 import com.example.myaiapp.chat.domain.agent_orchestrator.model.OrchestratorResult
 import com.example.myaiapp.chat.domain.repository.OllamaRepository
+import com.example.myaiapp.chat.domain.use_cases.ReasoningUseCase
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.AskLoaded
+import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.ChatHistoryLoaded
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.DockerResponse
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.MCPResponse
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.MCPResponseGitHubPr
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.MessageLoaded
+import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.ReasoningTurnLoaded
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.SummeryAndReviewLoaded
 import com.example.myaiapp.core.Actor
 import javax.inject.Inject
@@ -21,6 +24,7 @@ class ChatActor @Inject constructor(
     private val dockerRepository: DockerRepository,
     private val releaseOpsRepository: ReleaseOpsRepository,
     private val ollamaRepository: OllamaRepository,
+    private val reasoningUseCase: ReasoningUseCase,
 ) : Actor<ChatCommand, ChatEvents.Internal> {
 
     override suspend fun execute(command: ChatCommand, onEvent: (ChatEvents.Internal) -> Unit) {
@@ -96,7 +100,16 @@ class ChatActor @Inject constructor(
 
             ChatCommand.GetHistoryFromCache -> {
                 val result = orchestrator.getChatHistory()
-                onEvent(ChatEvents.Internal.ChatHistoryLoaded(result))
+                onEvent(ChatHistoryLoaded(result))
+            }
+
+            is ChatCommand.CallLlmWithReasoningMode -> {
+                val result = reasoningUseCase.run(
+                    content = command.content,
+                    model = command.model,
+                )
+
+                onEvent(ReasoningTurnLoaded(result))
             }
         }
     }
