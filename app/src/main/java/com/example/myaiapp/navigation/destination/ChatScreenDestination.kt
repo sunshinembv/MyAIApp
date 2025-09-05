@@ -1,6 +1,7 @@
 package com.example.myaiapp.navigation.destination
 
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.example.myaiapp.chat.di.DaggerChatComponent
@@ -9,7 +10,7 @@ import com.example.myaiapp.chat.presentation.ChatViewModel
 import com.example.myaiapp.utils.appComponent
 import com.example.myaiapp.utils.daggerViewModel
 
-const val CHAT_SCREEN_ROUTE = "chat"
+private const val CHAT_SCREEN_ROUTE = "chat"
 
 fun NavGraphBuilder.chatScreen(popBackStack: () -> Unit) {
 
@@ -26,4 +27,8 @@ fun NavGraphBuilder.chatScreen(popBackStack: () -> Unit) {
             popBackStack = popBackStack
         )
     }
+}
+
+fun NavController.navigateToChatScreen() {
+    navigate(CHAT_SCREEN_ROUTE)
 }

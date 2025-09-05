@@ -127,6 +127,9 @@ dependencies {
     //SSH
     implementation(libs.sshj)
 
+    //Security
+    implementation(libs.androidx.datastore.preferences)
+
     androidTestImplementation(libs.compose.ui.test.junit4)
     debugImplementation(libs.compose.uiTooling)
     debugImplementation(libs.compose.ui.test.manifest)

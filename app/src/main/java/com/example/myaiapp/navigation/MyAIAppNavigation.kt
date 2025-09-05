@@ -5,8 +5,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import com.example.myaiapp.navigation.destination.CHAT_SCREEN_ROUTE
+import com.example.myaiapp.navigation.destination.AUTH_SCREEN_ROUTE
+import com.example.myaiapp.navigation.destination.authScreen
 import com.example.myaiapp.navigation.destination.chatScreen
+import com.example.myaiapp.navigation.destination.navigateToChatScreen
 
 @Composable
 fun MyAIAppNavigation(
@@ -16,9 +18,14 @@ fun MyAIAppNavigation(
 ) {
     NavHost(
         navController = navController,
-        startDestination = CHAT_SCREEN_ROUTE,
+        startDestination = AUTH_SCREEN_ROUTE,
         modifier = modifier.systemBarsPadding()
     ) {
+        authScreen(
+            toChatScreen = navController::navigateToChatScreen,
+            popBackStack = navController::popBackStack,
+        )
+
         chatScreen(
             popBackStack = navController::popBackStack
         )

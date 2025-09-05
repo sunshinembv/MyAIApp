@@ -3,9 +3,12 @@ package com.example.myaiapp.chat.presentation.state
 import com.example.myaiapp.chat.data.agents.docker.DockerRepository
 import com.example.myaiapp.chat.data.agents.mcp.MCPRepository
 import com.example.myaiapp.chat.data.git_hub.ReleaseOpsRepository
+import com.example.myaiapp.chat.data.llm_policy.UserRoleHolder
 import com.example.myaiapp.chat.domain.agent_orchestrator.TwoAgentOrchestrator
 import com.example.myaiapp.chat.domain.agent_orchestrator.model.OrchestratorResult
+import com.example.myaiapp.chat.domain.model.UserRole
 import com.example.myaiapp.chat.domain.repository.OllamaRepository
+import com.example.myaiapp.chat.domain.repository.SecuredOllamaRepository
 import com.example.myaiapp.chat.domain.use_cases.ReasoningUseCase
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.AskLoaded
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.ChatHistoryLoaded
@@ -25,6 +28,7 @@ class ChatActor @Inject constructor(
     private val releaseOpsRepository: ReleaseOpsRepository,
     private val ollamaRepository: OllamaRepository,
     private val reasoningUseCase: ReasoningUseCase,
+    private val securedOllamaRepository: SecuredOllamaRepository,
 ) : Actor<ChatCommand, ChatEvents.Internal> {
 
     override suspend fun execute(command: ChatCommand, onEvent: (ChatEvents.Internal) -> Unit) {
@@ -90,12 +94,22 @@ class ChatActor @Inject constructor(
             }
 
             is ChatCommand.CallLlm ->  {
-                val result = ollamaRepository.chat(
-                    content = command.content,
-                    model = command.model,
-                )
-
-                onEvent(MessageLoaded(result))
+                if (UserRoleHolder.role == UserRole.ADMIN) {
+                    val result = ollamaRepository.chat(
+                        content = command.content,
+                        model = command.model,
+                    )
+                    onEvent(MessageLoaded(result))
+                } else {
+                    securedOllamaRepository.chat(
+                        content = command.content,
+                        model = command.model,
+                    ).onSuccess {
+                        onEvent(MessageLoaded(it))
+                    }.onFailure {
+                        onEvent(ChatEvents.Internal.LimitExceeded(it.message.orEmpty()))
+                    }
+                }
             }
 
             ChatCommand.GetHistoryFromCache -> {

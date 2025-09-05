@@ -1,6 +1,7 @@
 package com.example.myaiapp.di
 
 import android.content.Context
+import com.example.myaiapp.auth.di.AuthDeps
 import com.example.myaiapp.chat.data.db.dao.MessageDao
 import com.example.myaiapp.chat.di.ChatDeps
 import com.example.myaiapp.db.di.RoomModule
@@ -18,7 +19,7 @@ import javax.inject.Singleton
     ]
 )
 @Singleton
-interface AppComponent : ChatDeps {
+interface AppComponent : AuthDeps, ChatDeps {
 
 
     override fun mistralApi(): MistralApi
