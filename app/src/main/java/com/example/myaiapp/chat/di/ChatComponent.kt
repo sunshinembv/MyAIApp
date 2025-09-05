@@ -1,10 +1,16 @@
 package com.example.myaiapp.chat.di
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import com.example.myaiapp.AgentPrefs
+import com.example.myaiapp.Profile
 import com.example.myaiapp.chat.data.db.dao.MessageDao
 import com.example.myaiapp.chat.presentation.ChatViewModel
 import com.example.myaiapp.chat.voice.di.VoiceModule
 import com.example.myaiapp.data_provider.di.DataProviderModule
+import com.example.myaiapp.memory.db.dao.MemoryDao
+import com.example.myaiapp.memory.di.AgentPrefsStore
+import com.example.myaiapp.memory.di.ProfileStore
 import com.example.myaiapp.network.GitHubActionsApi
 import com.example.myaiapp.network.MistralApi
 import com.example.myaiapp.network.OpenRouterApi
@@ -18,6 +24,7 @@ import dagger.Component
         DataProviderModule::class,
         VoiceModule::class,
         SharedPreferencesProviderModule::class,
+        //DataStoreModule::class,
     ],
     dependencies = [ChatDeps::class]
 )
@@ -40,4 +47,9 @@ interface ChatDeps {
     fun openRouterApi(): OpenRouterApi
     fun gitHubActionsApi(): GitHubActionsApi
     fun messageDao(): MessageDao
+    fun memoryDao(): MemoryDao
+    @ProfileStore
+    fun dataStoreProfile(): DataStore<Profile>
+    @AgentPrefsStore
+    fun dataStoreAgentPrefs(): DataStore<AgentPrefs>
 }

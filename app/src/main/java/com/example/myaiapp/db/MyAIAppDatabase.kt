@@ -7,11 +7,14 @@ import com.example.myaiapp.chat.data.db.dao.MessageDao
 import com.example.myaiapp.chat.data.db.entities.MessageEntity
 import com.example.myaiapp.chat.data.db.entities.RoleConverter
 import com.example.myaiapp.db.MyAIAppDatabase.Companion.DB_VERSION
+import com.example.myaiapp.memory.db.dao.MemoryDao
+import com.example.myaiapp.memory.db.entities.MemoryEntity
 
 
 @Database(
     entities = [
         MessageEntity::class,
+        MemoryEntity::class,
     ],
     version = DB_VERSION
 )
@@ -19,6 +22,7 @@ import com.example.myaiapp.db.MyAIAppDatabase.Companion.DB_VERSION
 abstract class MyAIAppDatabase : RoomDatabase() {
 
     abstract fun messageDao(): MessageDao
+    abstract fun memoryDao(): MemoryDao
 
     companion object {
         const val DB_VERSION = 1

@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.protobuf)
     id("org.jetbrains.kotlin.kapt")
 }
 
@@ -127,10 +128,32 @@ dependencies {
     //SSH
     implementation(libs.sshj)
 
-    //Security
+    //Datastore
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.datastore)
+
+    //Protobuf
+    implementation(libs.protobuf.kotlin)
 
     androidTestImplementation(libs.compose.ui.test.junit4)
     debugImplementation(libs.compose.uiTooling)
     debugImplementation(libs.compose.ui.test.manifest)
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.25.3"
+    }
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                // 1) Генерим Java-классы (lite) — это и будут сами AgentPrefs/Profile и т.д.
+                create("java") {
+                    option("lite")
+                }
+                // 2) Плюс генерим Kotlin DSL-обёртки (agentPrefs { ... } и т.д.)
+                register("kotlin") // БЕЗ option("lite")
+            }
+        }
+    }
 }

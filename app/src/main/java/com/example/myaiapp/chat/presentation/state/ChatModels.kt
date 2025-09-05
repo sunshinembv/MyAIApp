@@ -1,5 +1,8 @@
 package com.example.myaiapp.chat.presentation.state
 
+import com.example.myaiapp.AgentPrefs
+import com.example.myaiapp.AgentPrefsKt
+import com.example.myaiapp.Profile
 import com.example.myaiapp.chat.data.llm_policy.UserRoleHolder
 import com.example.myaiapp.chat.data.model.OllamaChatMessage
 import com.example.myaiapp.chat.data.model.PrBrief
@@ -16,6 +19,7 @@ import com.example.myaiapp.chat.voice.VoiceState
 import com.example.myaiapp.core.Command
 import com.example.myaiapp.core.Event
 import com.example.myaiapp.core.State
+import com.example.myaiapp.memory.db.entities.MemoryEntity
 import com.example.myaiapp.utils.ImmutableList
 
 data class ChatState(
@@ -28,6 +32,7 @@ data class ChatState(
     val isPending: Boolean = false,
     val responseType: ResponseType = ResponseType.MESSENGER,
     val userRole: UserRole = UserRoleHolder.role,
+    val personalState: PersonalState = PersonalState(),
 ) : State
 
 sealed class ChatEvents : Event {
@@ -41,6 +46,8 @@ sealed class ChatEvents : Event {
         data object GetHistoryFromCache : Ui()
 
         data class Typing(val text: String) : Ui()
+
+        data object LoadPersonalState: Ui()
     }
 
     sealed class Internal : ChatEvents() {
@@ -50,24 +57,44 @@ sealed class ChatEvents : Event {
         data class AskLoaded(val ask: OrchestratorResult.Ask) :
             Internal()
 
-        data class SummeryAndReviewLoaded(val summary: Summary, val verify: Verify): Internal()
+        data class SummeryAndReviewLoaded(val summary: Summary, val verify: Verify) : Internal()
 
-        data class MCPResponse(val response: String): Internal()
+        data class MCPResponse(val response: String) : Internal()
 
-        data class MCPResponseGitHubPr(val prBrief: List<PrBrief>): Internal()
+        data class MCPResponseGitHubPr(val prBrief: List<PrBrief>) : Internal()
 
-        data class DockerResponse(val runResult: RunResult): Internal()
+        data class DockerResponse(val runResult: RunResult) : Internal()
 
-        data class ChatHistoryLoaded(val history: List<OllamaChatMessage>): Internal()
+        data class ChatHistoryLoaded(val history: List<OllamaChatMessage>) : Internal()
 
-        data class ReasoningTurnLoaded(val turn: ReasoningTurn): Internal()
+        data class ReasoningTurnLoaded(val turn: ReasoningTurn) : Internal()
 
         data class ErrorLoading(val error: Throwable) : Internal()
 
         data class LimitExceeded(val message: String) : Internal()
+
+        sealed class PersonalInternalEvent : Internal() {
+            data class ProfileStateLoaded(
+                val profile: Profile = Profile.getDefaultInstance(),
+                val prefs: AgentPrefs = AgentPrefs.getDefaultInstance(),
+                val memories: List<MemoryEntity> = emptyList()
+            ) : PersonalInternalEvent()
+
+            data class ProfileSaved(
+                val name: String,
+                val city: String,
+                val locale: String,
+                val tz: String
+            ) : PersonalInternalEvent()
+
+            data class PrefsUpdated(val block: AgentPrefsKt.Dsl.() -> Unit) : PersonalInternalEvent()
+            data class FactAdded(val text: String, val importance: Int) : PersonalInternalEvent()
+            data class Import(val json: String) : PersonalInternalEvent()
+            data object Export : PersonalInternalEvent()
+        }
     }
 
-    sealed class VoiceEvent: ChatEvents() {
+    sealed class VoiceEvent : ChatEvents() {
         data object ListeningStarted : VoiceEvent()
         data class PartialUpdated(val text: String) : VoiceEvent()
         data class FinalRecognized(val query: String) : VoiceEvent()
@@ -113,5 +140,27 @@ sealed class ChatCommand : Command {
         val model: LlmModels,
     ) : ChatCommand()
 
-    data object GetHistoryFromCache: ChatCommand()
+    data object GetHistoryFromCache : ChatCommand()
+
+    sealed class PersonalCommand : ChatCommand() {
+        data object LoadPersonalState : PersonalCommand()
+        data class SaveProfile(
+            val name: String,
+            val city: String,
+            val locale: String,
+            val tz: String
+        ) : PersonalCommand()
+
+        data class UpdatePrefs(val block: AgentPrefsKt.Dsl.() -> Unit) : PersonalCommand()
+        data class AddFact(val text: String, val importance: Int) : PersonalCommand()
+        data class Import(val json: String) : PersonalCommand()
+        data object Export : PersonalCommand()
+    }
 }
+
+data class PersonalState(
+    val profile: Profile = Profile.getDefaultInstance(),
+    val prefs: AgentPrefs = AgentPrefs.getDefaultInstance(),
+    val memories: List<MemoryEntity> = emptyList(),
+    val exportJson: String? = null
+)

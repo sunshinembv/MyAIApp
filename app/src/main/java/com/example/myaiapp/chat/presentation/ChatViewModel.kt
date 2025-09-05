@@ -38,12 +38,14 @@ class ChatViewModel(
         get() = reducer.state
 
     init {
-        obtainEvent(ChatEvents.Ui.GetHistoryFromCache)
+        //obtainEvent(ChatEvents.Ui.GetHistoryFromCache)
+        obtainEvent(ChatEvents.Ui.LoadPersonalState)
     }
 
     fun obtainEvent(event: ChatEvents.Ui) {
         when (event) {
 
+            ChatEvents.Ui.LoadPersonalState,
             ChatEvents.Ui.GetHistoryFromCache,
             is ChatEvents.Ui.CallLlm -> {
                 handleEvent(event)
