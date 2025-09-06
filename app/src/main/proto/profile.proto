@@ -1,0 +1,13 @@
+syntax = "proto3";
+package com.example.myaiapp;
+option java_package = "com.example.myaiapp";
+option java_multiple_files = true;
+
+message Profile {
+  string name     = 1;
+  string locale   = 2;
+  string timezone = 3;
+  string city     = 4;
+  repeated string roles     = 5;
+  repeated string interests = 6;
+}

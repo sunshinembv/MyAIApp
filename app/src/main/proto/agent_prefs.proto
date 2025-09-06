@@ -1,0 +1,25 @@
+syntax = "proto3";
+package com.example.myaiapp;
+option java_package = "com.example.myaiapp";
+option java_multiple_files = true;
+
+message AgentPrefs {
+  enum Tone   { TONE_UNSPECIFIED = 0; FRIENDLY = 1; NEUTRAL = 2; TERSE = 3; }
+  enum Style  { STYLE_UNSPECIFIED = 0; BULLETS = 1; PARAGRAPHS = 2; MIXED = 3; }
+  enum Detail { DETAIL_UNSPECIFIED = 0; SHORT = 1; MEDIUM = 2; DEEP = 3; }
+
+  Tone   tone               = 1;
+  Style  style              = 2;
+  Detail detail             = 3;
+  bool   use_emoji          = 4;
+  string default_language   = 5;
+  repeated string allowed_models = 6;
+
+  // флаги приватности
+  bool share_profile_with_remote_llm  = 7;
+  bool share_memories_with_remote_llm = 8;
+
+  repeated QuietHour quiet_hours = 9;
+}
+
+message QuietHour { int32 start = 1; int32 end = 2; }

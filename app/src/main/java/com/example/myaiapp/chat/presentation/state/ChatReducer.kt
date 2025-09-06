@@ -273,6 +273,37 @@ class ChatReducer @Inject constructor(
                 updateState(state, newHistory)
                 Result(null)
             }
+
+            is ChatEvents.Internal.PersonalInternalEvent.FactAdded -> {
+                Result(null)
+            }
+            ChatEvents.Internal.PersonalInternalEvent.Export -> {
+                Result(null)
+            }
+            is ChatEvents.Internal.PersonalInternalEvent.Import -> {
+                Result(null)
+            }
+            is ChatEvents.Internal.PersonalInternalEvent.ProfileStateLoaded -> {
+                setState(
+                    state.copy(
+                        personalState = state.personalState.copy(
+                            profile = event.profile,
+                            prefs = event.prefs,
+                            memories = event.memories,
+                        )
+                    )
+                )
+                Result(null)
+            }
+            is ChatEvents.Internal.PersonalInternalEvent.ProfileSaved -> {
+                Result(null)
+            }
+            is ChatEvents.Internal.PersonalInternalEvent.PrefsUpdated -> {
+                Result(null)
+            }
+            ChatEvents.Ui.LoadPersonalState -> {
+                Result(ChatCommand.PersonalCommand.LoadPersonalState)
+            }
         }
     }
 

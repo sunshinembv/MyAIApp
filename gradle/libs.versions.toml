@@ -10,6 +10,7 @@ coroutines = "1.10.2"
 dagger = "2.57.1"
 datastore-preferences = "1.1.7"
 kotlinx-serialization-json = "1.9.0"
+protobuf-kotlin = "4.32.0"
 room = "2.7.2"
 retrofit = "3.0.0"
 okhttp3 = "5.1.0"
@@ -22,10 +23,12 @@ application = "8.12.2"
 compose = "2.2.10"
 sshj = "0.40.0"
 jetbrains-kotlin-jvm = "2.2.10"
+protobuf = "0.9.5"
 
 [libraries]
 #androidx
 androidx-core = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core" }
+androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "datastore-preferences" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore-preferences" }
 androidx-lifecycle = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle" }
 
@@ -80,6 +83,9 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 #SSH
 sshj = { module = "com.hierynomus:sshj", version.ref = "sshj" }
 
+#Protobuf
+protobuf-kotlin = { module = "com.google.protobuf:protobuf-kotlin", version.ref = "protobuf-kotlin" }
+
 [plugins]
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
@@ -87,3 +93,4 @@ android-application = { id = "com.android.application", version.ref = "applicati
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "compose" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrains-kotlin-jvm" }
+protobuf = { id = "com.google.protobuf", version.ref = "protobuf" }

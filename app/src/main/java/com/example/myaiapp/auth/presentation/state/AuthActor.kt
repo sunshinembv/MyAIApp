@@ -5,11 +5,15 @@ import com.example.myaiapp.chat.data.llm_policy.UserRoleHolder
 import com.example.myaiapp.chat.data.llm_policy.UserRoleRepository
 import com.example.myaiapp.chat.domain.model.UserRole
 import com.example.myaiapp.core.Actor
+import com.example.myaiapp.memory.ImportExportConfig
+import com.example.myaiapp.memory.data.repository.PersonalizationRepository
 import javax.inject.Inject
 
 class AuthActor @Inject constructor(
     private val authRepository: AuthRepository,
     private val userRoleRepository: UserRoleRepository,
+    private val personalizationRepository: PersonalizationRepository,
+    private val importExportConfig: ImportExportConfig,
 ) : Actor<AuthCommand, AuthEvents.Internal> {
 
     override suspend fun execute(
@@ -36,6 +40,8 @@ class AuthActor @Inject constructor(
                 authRepository.setPin(
                     pin = command.pin4.toCharArray()
                 )
+                // Импортим персонализированный конфиг пока прям из кода
+                importExportConfig.importConfig(personalizationRepository, SEED_JSON)
                 onEvent(AuthEvents.Internal.PinSet)
             }
             is AuthCommand.VerifyPin -> {
@@ -68,8 +74,43 @@ class AuthActor @Inject constructor(
             return
         }
 
+        //3) Импортим персонализированный конфиг пока прям из кода
+        importExportConfig.importConfig(personalizationRepository, SEED_JSON)
+
         // 3) Всё есть → сразу показываем экран ввода PIN (Locked)
         val info = authRepository.lockInfoText()
         onEvent(AuthEvents.Internal.AuthStateLoaded(AuthGateState.Locked(info)))
+    }
+
+
+    companion object {
+        // Минимальный пример JSON для импорта (версия 1)
+        private const val SEED_JSON = """
+{
+  "version": 1,
+  "profile": {
+    "name": "sunshine007",
+    "locale": "ru-RU",
+    "timezone": "Europe/Moscow",
+    "city": "Moscow",
+    "roles": ["android-dev","founder"],
+    "interests": ["LLM","Kotlin","Cycling"]
+  },
+  "prefs": {
+    "tone": "FRIENDLY",
+    "style": "MIXED",
+    "detail": "MEDIUM",
+    "useEmoji": false,
+    "defaultLanguage": "ru",
+    "allowedModels": ["mistral:instruct","deepseek/deepseek-r1:free"],
+    "shareProfileWithRemoteLLM": false,
+    "shareMemoriesWithRemoteLLM": false,
+    "quietHours": [{"start":22,"end":8}]
+  },
+  "memories": [
+    {"text":"Любит музыку", "importance":4, "kind":"preference"}
+  ]
+}
+"""
     }
 }

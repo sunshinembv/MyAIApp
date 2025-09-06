@@ -8,6 +8,7 @@ import com.example.myaiapp.chat.domain.agent_orchestrator.TwoAgentOrchestrator
 import com.example.myaiapp.chat.domain.agent_orchestrator.model.OrchestratorResult
 import com.example.myaiapp.chat.domain.model.UserRole
 import com.example.myaiapp.chat.domain.repository.OllamaRepository
+import com.example.myaiapp.chat.domain.repository.PersonalOllamaRepository
 import com.example.myaiapp.chat.domain.repository.SecuredOllamaRepository
 import com.example.myaiapp.chat.domain.use_cases.ReasoningUseCase
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.AskLoaded
@@ -19,6 +20,9 @@ import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.MessageLo
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.ReasoningTurnLoaded
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.SummeryAndReviewLoaded
 import com.example.myaiapp.core.Actor
+import com.example.myaiapp.memory.ImportExportConfig
+import com.example.myaiapp.memory.data.repository.PersonalizationRepository
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 class ChatActor @Inject constructor(
@@ -29,6 +33,9 @@ class ChatActor @Inject constructor(
     private val ollamaRepository: OllamaRepository,
     private val reasoningUseCase: ReasoningUseCase,
     private val securedOllamaRepository: SecuredOllamaRepository,
+    private val personalOllamaRepository: PersonalOllamaRepository,
+    private val personalizationRepository: PersonalizationRepository,
+    private val importExportConfig: ImportExportConfig,
 ) : Actor<ChatCommand, ChatEvents.Internal> {
 
     override suspend fun execute(command: ChatCommand, onEvent: (ChatEvents.Internal) -> Unit) {
@@ -44,6 +51,7 @@ class ChatActor @Inject constructor(
                     is OrchestratorResult.Ask -> {
                         onEvent(AskLoaded(result))
                     }
+
                     is OrchestratorResult.SummaryAndReview -> {
                         onEvent(SummeryAndReviewLoaded(result.summary, result.verify))
                     }
@@ -93,7 +101,7 @@ class ChatActor @Inject constructor(
                 onEvent(MessageLoaded(result))
             }
 
-            is ChatCommand.CallLlm ->  {
+            is ChatCommand.CallLlm -> {
                 if (UserRoleHolder.role == UserRole.ADMIN) {
                     val result = ollamaRepository.chat(
                         content = command.content,
@@ -101,14 +109,19 @@ class ChatActor @Inject constructor(
                     )
                     onEvent(MessageLoaded(result))
                 } else {
-                    securedOllamaRepository.chat(
+                    /*securedOllamaRepository.chat(
                         content = command.content,
                         model = command.model,
                     ).onSuccess {
                         onEvent(MessageLoaded(it))
                     }.onFailure {
-                        onEvent(ChatEvents.Internal.LimitExceeded(it.message.orEmpty()))
-                    }
+                        onEvent(LimitExceeded(it.message.orEmpty()))
+                    }*/
+                    val result = personalOllamaRepository.chat(
+                        content = command.content,
+                        model = command.model,
+                    )
+                    onEvent(MessageLoaded(result))
                 }
             }
 
@@ -124,6 +137,44 @@ class ChatActor @Inject constructor(
                 )
 
                 onEvent(ReasoningTurnLoaded(result))
+            }
+
+            is ChatCommand.PersonalCommand.AddFact -> {
+                personalizationRepository.addMemory(command.text, command.importance)
+            }
+
+            ChatCommand.PersonalCommand.Export -> {
+                importExportConfig.exportConfig(personalizationRepository)
+            }
+
+            is ChatCommand.PersonalCommand.Import -> {
+                importExportConfig.importConfig(personalizationRepository, command.json)
+            }
+
+            ChatCommand.PersonalCommand.LoadPersonalState -> {
+                val profile = personalizationRepository.profileFlow.first()
+                val prefs = personalizationRepository.prefsFlow.first()
+                val memories = personalizationRepository.selectContextMemories()
+                onEvent(
+                    ChatEvents.Internal.PersonalInternalEvent.ProfileStateLoaded(
+                        profile,
+                        prefs,
+                        memories
+                    )
+                )
+            }
+
+            is ChatCommand.PersonalCommand.SaveProfile -> {
+                personalizationRepository.updateProfile {
+                    name = command.name
+                    city = command.city
+                    locale = command.locale
+                    timezone = command.tz
+                }
+            }
+
+            is ChatCommand.PersonalCommand.UpdatePrefs -> {
+                personalizationRepository.updatePrefs(command.block)
             }
         }
     }
