@@ -28,6 +28,11 @@ dependencies {
     implementation(libs.moshi)
     implementation(libs.moshi.kotlin)
     ksp(libs.moshi.kotlin.codegen)
+
+    //Okio
+    implementation(libs.okio)
+    //Diff utils
+    implementation(libs.java.diff.utils)
 }
 
 application {

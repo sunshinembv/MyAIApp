@@ -9,7 +9,9 @@ androidx-navigation = "2.9.3"
 coroutines = "1.10.2"
 dagger = "2.57.1"
 datastore-preferences = "1.1.7"
+java-diff-utils = "4.16"
 kotlinx-serialization-json = "1.9.0"
+okio = "3.16.0"
 protobuf-kotlin = "4.32.0"
 room = "2.7.2"
 retrofit = "3.0.0"
@@ -55,6 +57,8 @@ dagger = { group = "com.google.dagger", name = "dagger", version.ref = "dagger" 
 dagger-compiler = { group = "com.google.dagger", name = "dagger-compiler", version.ref = "dagger" }
 
 #room
+java-diff-utils = { module = "io.github.java-diff-utils:java-diff-utils", version.ref = "java-diff-utils" }
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
