@@ -1,5 +1,11 @@
 package com.example.code_agent.legacy_code_review_agent
 
+import com.example.code_agent.legacy_code_review_agent.chain_of_agents.Dependency
+import com.example.code_agent.legacy_code_review_agent.chain_of_agents.DuplicateCluster
+import com.example.code_agent.legacy_code_review_agent.chain_of_agents.FileSummary
+import com.example.code_agent.legacy_code_review_agent.chain_of_agents.ReviewItem
+import com.example.code_agent.legacy_code_review_agent.chain_of_agents.ReviewReport
+import com.example.code_agent.legacy_code_review_agent.chain_of_agents.ToolFinding
 import java.io.File
 import kotlin.system.exitProcess
 import com.squareup.moshi.Moshi
@@ -53,9 +59,9 @@ fun parseArgs(argv: Array<String>): Args {
     var maxSnippetLines = 60
 
     var applyPatches = false
-    var llmEndpoint = System.getenv("OPENROUTER_ENDPOINT") ?: "https://openrouter.ai/api/v1/chat/completions"
-    var llmModel = System.getenv("OPENROUTER_MODEL") ?: "deepseek/deepseek-r1:free"
-    var llmApiKey: String? = System.getenv("OPENROUTER_API_KEY")
+    var llmEndpoint = System.getenv("OPEN_ROUTER_ENDPOINT") ?: "https://openrouter.ai/api/v1/chat/completions"
+    var llmModel = System.getenv("OPEN_ROUTER_MODEL") ?: "deepseek/deepseek-r1:free"
+    var llmApiKey: String? = System.getenv("OPEN_ROUTER_API_KEY")
     var llmTemperature = 0.0
     var llmMaxTokens = 2000
     var llmIncludeCode = true
@@ -92,44 +98,6 @@ fun parseArgs(argv: Array<String>): Args {
     if (root == null || !root!!.exists()) error("--root dir not found")
     return Args(root!!, outMd, outJson, withLlm, maxSnippetLines, applyPatches, llmEndpoint, llmModel, llmApiKey, llmTemperature, llmMaxTokens, llmIncludeCode, llmMaxFiles, llmMaxChars, llmRetryIfEmpty, debugDiffs, llmForceRewriteOnEmpty)
 }
-
-// ======== Report model ========
-
-data class FileSummary(
-    val path: String,
-    val lines: Int,
-    val functions: Int,
-    val maxFunctionLen: Int,
-    val nestedBlocksMaxDepth: Int,
-    val notNullBangCount: Int,
-)
-
-data class DuplicateCluster(
-    val representative: String,
-    val occurrences: List<Occurrence>,
-    val approxLines: Int,
-) { data class Occurrence(val file: String, val lineFrom: Int, val lineTo: Int) }
-
-data class Dependency(val notation: String, val where: String)
-
-data class ToolFinding(val tool: String, val summary: String, val htmlReport: String?)
-
-data class ReviewItem(
-    val category: String, // duplicates | readability | dependencies | style | risk
-    val severity: String, // low|med|high
-    val title: String,
-    val details: String,
-    val files: List<String> = emptyList(),
-)
-
-data class ReviewReport(
-    val root: String,
-    val files: List<FileSummary>,
-    val duplicates: List<DuplicateCluster>,
-    val dependencies: List<Dependency>,
-    val toolFindings: List<ToolFinding>,
-    val suggestions: List<ReviewItem>,
-)
 
 // ======== Utils ========
 
@@ -507,7 +475,7 @@ fun main(argv: Array<String>) {
         val f = java.io.File("local.properties")
         if (f.exists()) Properties().apply { load(f.inputStream()) }.getProperty("OPEN_ROUTER_API_KEY") else null
     } ?: error("Missing OPEN_ROUTER_API_KEY (env var или local.properties)")
-    val client = OpenRouterLlmClient(endpoint = args.llmEndpoint, apiKey = apiKey, appTitle = "legacy-agent")
+    val client = OpenRouterLlmClient(endpoint = args.llmEndpoint, appTitle = "legacy-agent")
 
     println("[LLM] Request (attempt 1) to '${args.llmModel}'…")
     var resp: LlmResponse = try {
@@ -564,11 +532,7 @@ fun main(argv: Array<String>) {
         }
 
         val system = loadSystemPrompt()
-        val apiKey = System.getenv("OPEN_ROUTER_API_KEY") ?: run {
-            val f = java.io.File("local.properties")
-            if (f.exists()) Properties().apply { load(f.inputStream()) }.getProperty("OPEN_ROUTER_API_KEY") else null
-        } ?: error("Missing OPEN_ROUTER_API_KEY (env var или local.properties)")
-        val client = OpenRouterLlmClient(endpoint = args.llmEndpoint, apiKey = apiKey, appTitle = "legacy-agent")
+        val client = OpenRouterLlmClient(endpoint = args.llmEndpoint, appTitle = "legacy-agent")
         val rewriteResp = try {
             client.generatePlan(system = system, user = rewritePrompt, model = args.llmModel, temperature = args.llmTemperature, maxTokens = args.llmMaxTokens)
         } catch (t: Throwable) {
@@ -636,8 +600,11 @@ fun main(argv: Array<String>) {
                     appendLine()
                     appendLine("JSON schema:\n{ \"rewrites\": [ { \"file\": \"path\", \"new_content\": \"...\" } ] }")
                 }
-                val apiKey = args.llmApiKey ?: System.getenv("OPENROUTER_API_KEY") ?: error("No API key")
-                val client2 = OpenRouterLlmClient(endpoint = args.llmEndpoint, apiKey = apiKey, appTitle = "legacy-agent")
+                val apiKey = System.getenv("OPEN_ROUTER_API_KEY") ?: run {
+                    val f = java.io.File("local.properties")
+                    if (f.exists()) Properties().apply { load(f.inputStream()) }.getProperty("OPEN_ROUTER_API_KEY") else null
+                } ?: error("Missing OPEN_ROUTER_API_KEY (env var или local.properties)")
+                val client2 = OpenRouterLlmClient(endpoint = args.llmEndpoint, appTitle = "legacy-agent")
                 val rewriteResp = try { client2.generatePlan(system = loadSystemPrompt(), user = rewritePrompt, model = args.llmModel, temperature = args.llmTemperature, maxTokens = args.llmMaxTokens) } catch (t: Throwable) {
                     System.err.println("[LLM] Rewrite request failed: ${t.message}"); null
                 }
