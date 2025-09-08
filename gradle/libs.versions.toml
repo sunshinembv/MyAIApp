@@ -10,7 +10,11 @@ coroutines = "1.10.2"
 dagger = "2.57.1"
 datastore-preferences = "1.1.7"
 java-diff-utils = "4.16"
+kotlinx-coroutines-core = "1.9.0"
 kotlinx-serialization-json = "1.9.0"
+kotlinx-serialization-json-version = "1.7.1"
+ktor-server-netty = "3.2.3"
+logback-classic = "1.5.18"
 okio = "3.16.0"
 protobuf-kotlin = "4.32.0"
 room = "2.7.2"
@@ -58,6 +62,13 @@ dagger-compiler = { group = "com.google.dagger", name = "dagger-compiler", versi
 
 #room
 java-diff-utils = { module = "io.github.java-diff-utils:java-diff-utils", version.ref = "java-diff-utils" }
+kotlinx-coroutines-core-v190 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines-core" }
+kotlinx-serialization-json-v171 = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-json-version" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor-server-netty" }
+ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor-server-netty" }
+ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor-server-netty" }
+ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor-server-netty" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback-classic" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }

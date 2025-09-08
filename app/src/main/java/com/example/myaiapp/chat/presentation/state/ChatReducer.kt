@@ -111,6 +111,10 @@ class ChatReducer @Inject constructor(
                             model = event.model,
                         )
                     }
+
+                    ResponseType.MAIN_DAEMON_START -> {
+                        parseMainCommand(event.content, allowed)
+                    }
                 }
                 Result(command)
             }
@@ -277,12 +281,15 @@ class ChatReducer @Inject constructor(
             is ChatEvents.Internal.PersonalInternalEvent.FactAdded -> {
                 Result(null)
             }
+
             ChatEvents.Internal.PersonalInternalEvent.Export -> {
                 Result(null)
             }
+
             is ChatEvents.Internal.PersonalInternalEvent.Import -> {
                 Result(null)
             }
+
             is ChatEvents.Internal.PersonalInternalEvent.ProfileStateLoaded -> {
                 setState(
                     state.copy(
@@ -295,12 +302,15 @@ class ChatReducer @Inject constructor(
                 )
                 Result(null)
             }
+
             is ChatEvents.Internal.PersonalInternalEvent.ProfileSaved -> {
                 Result(null)
             }
+
             is ChatEvents.Internal.PersonalInternalEvent.PrefsUpdated -> {
                 Result(null)
             }
+
             ChatEvents.Ui.LoadPersonalState -> {
                 Result(ChatCommand.PersonalCommand.LoadPersonalState)
             }
@@ -313,5 +323,38 @@ class ChatReducer @Inject constructor(
             isPending = false,
         )
         setState(newState)
+    }
+
+    val allowed = setOf(
+        "com.example.code_agent.LegacyCodeReviewAgentKt",
+        "com.example.code_agent.CodeAgentKt",
+        "com.example.code_agent.CodeAgentDay17Kt",
+        "com.example.code_agent.MainChainKt",
+    )
+
+    fun parseMainCommand(message: String, allowedClasses: Set<String>): ChatCommand.CallMainDaemon {
+        // 1. Проверяем префикс
+        require(message.startsWith("RUN:")) { "Message must start with RUN:" }
+
+        // 2. Разбиваем строку
+        val parts = message.removePrefix("RUN:").trim().split(" ")
+        require(parts.isNotEmpty()) { "Class name is required" }
+
+        val className = parts.first()
+        val args = parts.drop(1)
+
+        // 3. Проверяем whitelist
+        require(className in allowedClasses) {
+            "Class $className is not allowed"
+        }
+
+        // 4. Проверяем аргументы на «чистоту» (без ; && и т.д.)
+        args.forEach { arg ->
+            require(!arg.contains(";") && !arg.contains("&")) {
+                "Dangerous characters in argument: $arg"
+            }
+        }
+
+        return ChatCommand.CallMainDaemon(className, args)
     }
 }

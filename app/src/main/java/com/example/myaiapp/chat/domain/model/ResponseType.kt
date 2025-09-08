@@ -11,4 +11,5 @@ enum class ResponseType {
     VOICE,
     WITH_REASONING,
     MESSENGER,
+    MAIN_DAEMON_START,
 }

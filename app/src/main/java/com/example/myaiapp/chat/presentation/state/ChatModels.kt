@@ -30,7 +30,7 @@ data class ChatState(
     val isEmptyState: Boolean = true,
     val typedText: String? = null,
     val isPending: Boolean = false,
-    val responseType: ResponseType = ResponseType.MESSENGER,
+    val responseType: ResponseType = ResponseType.MAIN_DAEMON_START,
     val userRole: UserRole = UserRoleHolder.role,
     val personalState: PersonalState = PersonalState(),
 ) : State
@@ -156,6 +156,11 @@ sealed class ChatCommand : Command {
         data class Import(val json: String) : PersonalCommand()
         data object Export : PersonalCommand()
     }
+
+    data class CallMainDaemon(
+        val className: String,
+        val args: List<String>,
+    ): ChatCommand()
 }
 
 data class PersonalState(

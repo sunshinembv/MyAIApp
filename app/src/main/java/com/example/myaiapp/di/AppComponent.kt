@@ -15,6 +15,7 @@ import com.example.myaiapp.memory.di.ProfileStore
 import com.example.myaiapp.network.GitHubActionsApi
 import com.example.myaiapp.network.MistralApi
 import com.example.myaiapp.network.OpenRouterApi
+import com.example.myaiapp.run_main.MainDaemonApi
 import dagger.BindsInstance
 import dagger.Component
 import javax.inject.Singleton
@@ -33,6 +34,7 @@ interface AppComponent : AuthDeps, ChatDeps {
     override fun mistralApi(): MistralApi
     override fun openRouterApi(): OpenRouterApi
     override fun gitHubActionsApi(): GitHubActionsApi
+    override fun mainDaemonApi(): MainDaemonApi
     override fun messageDao(): MessageDao
     override fun memoryDao(): MemoryDao
     @ProfileStore
