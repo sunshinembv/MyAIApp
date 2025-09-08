@@ -44,7 +44,6 @@ class ChatViewModel(
 
     fun obtainEvent(event: ChatEvents.Ui) {
         when (event) {
-
             ChatEvents.Ui.LoadPersonalState,
             ChatEvents.Ui.GetHistoryFromCache,
             is ChatEvents.Ui.CallLlm -> {

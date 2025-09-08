@@ -17,11 +17,13 @@ import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.DockerRes
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.MCPResponse
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.MCPResponseGitHubPr
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.MessageLoaded
+import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.PersonalInternalEvent.*
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.ReasoningTurnLoaded
 import com.example.myaiapp.chat.presentation.state.ChatEvents.Internal.SummeryAndReviewLoaded
 import com.example.myaiapp.core.Actor
 import com.example.myaiapp.memory.ImportExportConfig
 import com.example.myaiapp.memory.data.repository.PersonalizationRepository
+import com.example.myaiapp.run_main.MainDaemonRepository
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
@@ -35,6 +37,7 @@ class ChatActor @Inject constructor(
     private val securedOllamaRepository: SecuredOllamaRepository,
     private val personalOllamaRepository: PersonalOllamaRepository,
     private val personalizationRepository: PersonalizationRepository,
+    private val mainDaemonRepository: MainDaemonRepository,
     private val importExportConfig: ImportExportConfig,
 ) : Actor<ChatCommand, ChatEvents.Internal> {
 
@@ -156,7 +159,7 @@ class ChatActor @Inject constructor(
                 val prefs = personalizationRepository.prefsFlow.first()
                 val memories = personalizationRepository.selectContextMemories()
                 onEvent(
-                    ChatEvents.Internal.PersonalInternalEvent.ProfileStateLoaded(
+                    ProfileStateLoaded(
                         profile,
                         prefs,
                         memories
@@ -175,6 +178,15 @@ class ChatActor @Inject constructor(
 
             is ChatCommand.PersonalCommand.UpdatePrefs -> {
                 personalizationRepository.updatePrefs(command.block)
+            }
+
+            is ChatCommand.CallMainDaemon -> {
+                val result = mainDaemonRepository.run(command.className, command.args)
+                if (result.ok) {
+                    onEvent(MessageLoaded("OK (${result.elapsedMs}ms)\n${result.stdout}"))
+                } else {
+                    onEvent(MessageLoaded("FAIL: ${result.error}\n${result.stderr}"))
+                }
             }
         }
     }

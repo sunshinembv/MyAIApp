@@ -4,6 +4,7 @@ import com.example.myaiapp.BuildConfig
 import com.example.myaiapp.network.GitHubActionsApi
 import com.example.myaiapp.network.MistralApi
 import com.example.myaiapp.network.OpenRouterApi
+import com.example.myaiapp.run_main.MainDaemonApi
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
@@ -96,6 +97,36 @@ class NetworkModule {
             .build()
 
         return retrofit.create(GitHubActionsApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMainDaemonApi(): MainDaemonApi {
+        val token = BuildConfig.MAIN_D_TOKEN
+        require(token.isNotBlank()) { "MAIN_D_TOKEN is missing. Put it in local.properties" }
+
+        val client = OkHttpClient.Builder()
+            .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+            .writeTimeout(5, java.util.concurrent.TimeUnit.MINUTES)
+            .readTimeout(5, java.util.concurrent.TimeUnit.MINUTES)
+            .callTimeout(0, java.util.concurrent.TimeUnit.MILLISECONDS)
+            .retryOnConnectionFailure(true)
+            .addInterceptor { ch ->
+                ch.proceed(
+                    ch.request().newBuilder()
+                        .header("Authorization", "Bearer $token")
+                        .build()
+                )
+            }
+            .build()
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl("http://10.0.2.2:8080/")
+            .client(client)
+            .addConverterFactory(MoshiConverterFactory.create())
+            .build()
+
+        return retrofit.create(MainDaemonApi::class.java)
     }
 
     companion object {

@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 rootProject.name = "MyAIApp"
 include(":app")
 include(":code_agent")
+include(":main_daemon")

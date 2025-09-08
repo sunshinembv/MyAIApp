@@ -45,6 +45,15 @@ android {
                 buildConfigField("String", "OPEN_ROUTER_API_KEY", key.asBuildConfigString())
             }
 
+            run {
+                val fromLocal = localProps.getProperty("MAIN_D_TOKEN") ?: ""
+                val fromGradle = providers.gradleProperty("MAIN_D_TOKEN").orNull
+                val fromEnv = providers.environmentVariable("MAIN_D_TOKEN").orNull
+                //noinspection WrongGradleMethod
+                val key = sequenceOf(fromGradle, fromLocal, fromEnv).firstOrNull { !it.isNullOrBlank() } ?: ""
+                buildConfigField("String", "MAIN_D_TOKEN", key.asBuildConfigString())
+            }
+
             // --- НОВОЕ: GitHub PAT для GitHub Actions dispatch ---
             run {
                 val fromLocal = localProps.getProperty("GITHUB_PAT") ?: ""
@@ -63,6 +72,7 @@ android {
             )
             // На всякий случай в релиз не кладём ничего
             buildConfigField("String", "OPEN_ROUTER_API_KEY", "\"\"")
+            buildConfigField("String", "MAIN_D_TOKEN", "\"\"")
         }
     }
     compileOptions {

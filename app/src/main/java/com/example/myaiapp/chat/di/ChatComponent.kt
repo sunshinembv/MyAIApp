@@ -14,6 +14,7 @@ import com.example.myaiapp.memory.di.ProfileStore
 import com.example.myaiapp.network.GitHubActionsApi
 import com.example.myaiapp.network.MistralApi
 import com.example.myaiapp.network.OpenRouterApi
+import com.example.myaiapp.run_main.MainDaemonApi
 import com.example.myaiapp.shared_preferences.di.SharedPreferencesProviderModule
 import dagger.Component
 
@@ -46,6 +47,7 @@ interface ChatDeps {
     fun mistralApi(): MistralApi
     fun openRouterApi(): OpenRouterApi
     fun gitHubActionsApi(): GitHubActionsApi
+    fun mainDaemonApi(): MainDaemonApi
     fun messageDao(): MessageDao
     fun memoryDao(): MemoryDao
     @ProfileStore
